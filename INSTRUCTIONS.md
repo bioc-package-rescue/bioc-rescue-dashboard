@@ -183,6 +183,10 @@ informational and can be ignored.
       --title "Fix R CMD check errors" --body "..." --base <default-branch>
 
 7b. Still failing → return to step 1 and iterate
+
+8. Monitor and address feedback — wait for and address feedback from human
+   and GitHub Copilot reviews on the pull request. Push any necessary fixes
+   to the branch until the PR is approved and merged.
 ```
 
 ### Common Error Classes
