@@ -30,9 +30,19 @@ BUILD_DATABASES = {
     "AnnotationData": "https://bioconductor.org/checkResults/release/data-annotation-LATEST/BUILD_STATUS_DB.txt"
 }
 
+STATS_DATABASES = {
+    "Software": "https://bioconductor.org/packages/stats/bioc/bioc_pkg_stats.tab",
+    "ExperimentData": "https://bioconductor.org/packages/stats/data-experiment/bioc_pkg_stats.tab",
+    "AnnotationData": "https://bioconductor.org/packages/stats/data-annotation/bioc_pkg_stats.tab"
+}
+
 # Parsed status database in memory:
 # { pkg_name: { builder: { stage: status } } }
 parsed_status_db = {}
+
+# Parsed download stats in memory:
+# { pkg_name: distinct_ips }
+parsed_stats_db = {}
 
 def get_landing_page_url(package_name, pkg_type):
     if pkg_type == "Software":
@@ -85,6 +95,27 @@ def load_build_databases():
         except Exception as e:
             print(f"  Warning: Failed to load build status DB for {pkg_type} from {url}: {e}")
 
+def load_download_stats(target_year="2025"):
+    print(f"Loading download statistics for {target_year}...")
+    for pkg_type, url in STATS_DATABASES.items():
+        try:
+            print(f"  Fetching stats from {url}...")
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req) as resp:
+                content = resp.read().decode('utf-8')
+            for line in content.split('\n'):
+                line = line.strip()
+                if not line or line.startswith("Package\t"):
+                    continue
+                parts = line.split('\t')
+                if len(parts) >= 5:
+                    pkg, year, month, distinct_ips, downloads = parts[0], parts[1], parts[2], parts[3], parts[4]
+                    if year == target_year and month == "all":
+                        parsed_stats_db[pkg] = int(distinct_ips)
+            print(f"  Successfully parsed stats for {pkg_type}.")
+        except Exception as e:
+            print(f"  Warning: Failed to load download stats for {pkg_type} from {url}: {e}")
+
 def get_repo_url(package_name, pkg_type):
     landing_url = get_landing_page_url(package_name, pkg_type)
     fallback_url = f"https://git.bioconductor.org/packages/{package_name}"
@@ -97,7 +128,6 @@ def get_repo_url(package_name, pkg_type):
         github_links = re.findall(r'href="(https?://github\.com/[^"]+)"', html)
         if github_links:
             github_url = github_links[0]
-            # Match github.com/user/repo, stripping trailing paths/issues
             match = re.match(r'(https?://(?:www\.)?github\.com/[^/]+/[^/#?]+)', github_url)
             if match:
                 clean_url = match.group(1).rstrip('/')
@@ -165,6 +195,7 @@ def get_package_build_status(package_name, pkg_type):
 def main():
     print("Starting deprecated packages table generation...")
     load_build_databases()
+    load_download_stats(target_year="2025")
     
     markdown_lines = []
     markdown_lines.append("# Deprecated Bioconductor Packages")
@@ -172,7 +203,7 @@ def main():
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     markdown_lines.append(f"*Last updated: {now_str}*")
     markdown_lines.append("")
-    markdown_lines.append("| Package | Type | Build Page | Download Rank | Repository | Bioconductor Build Status | Rescue Status |")
+    markdown_lines.append("| Package | Type | Build Page | Downloads (2025 IPs) | Repository | Bioconductor Build Status | Rescue Status |")
     markdown_lines.append("| --- | --- | --- | --- | --- | --- | --- |")
     
     # Process packages sequentially
@@ -190,9 +221,8 @@ def main():
             repo_url = get_repo_url(pkg, pkg_type)
             build_status = get_package_build_status(pkg, pkg_type)
             
-            # Construct download rank SVG badge link
-            rank_badge_url = f"https://www.bioconductor.org/shields/downloads/release/{pkg}.svg"
-            rank_badge_markdown = f"![Rank]({rank_badge_url})"
+            # Get 2025 download statistics
+            distinct_ips = parsed_stats_db.get(pkg, "NA")
             
             # Construct build status badge link or use shields.io
             if pkg_type == "Software":
@@ -221,7 +251,7 @@ def main():
             repo_link = f"[Repo]({repo_url})"
             rescue_status = "NA"
             
-            row = f"| {package_link} | {pkg_type} | {build_page_link} | {rank_badge_markdown} | {repo_link} | {build_badge_markdown} | {rescue_status} |"
+            row = f"| {package_link} | {pkg_type} | {build_page_link} | {distinct_ips} | {repo_link} | {build_badge_markdown} | {rescue_status} |"
             markdown_lines.append(row)
             
     # Write to README.md in the parent directory (bioc-rescue-dashboard root)
