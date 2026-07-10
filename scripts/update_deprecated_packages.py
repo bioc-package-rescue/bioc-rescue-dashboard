@@ -200,8 +200,8 @@ def load_packages_csv():
 
 def generate_markdown_table(packages_dict):
     table_lines = []
-    table_lines.append("| Package | Type | Build Page | Downloads (2025 IPs) | Repository | Bioconductor Build Status | Rescue Status | Rescue CI |")
-    table_lines.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
+    table_lines.append("| Package | Type | Build Page | Downloads (2025 IPs) | Repo | Bioconductor Build Status | Rescue CI |")
+    table_lines.append("| --- | --- | --- | --- | --- | --- | --- |")
     
     total_packages = sum(len(pkgs) for pkgs in packages_dict.values())
     processed_count = 0
@@ -243,21 +243,17 @@ def generate_markdown_table(packages_dict):
             # Build Row
             package_link = f"[{pkg}]({landing_url})"
             build_page_link = f"[Build Page]({build_page_url})"
-            repo_link = f"[Repo]({repo_url})"
-            
-            # Rescue Status is set to the organization repo if build status is ERROR
+            # If build status is ERROR, we have a rescue repo
             if build_status == "error":
-                rescue_status = f"[Rescue Repo](https://github.com/bioc-package-rescue/{pkg})"
+                repo_cell = f"[upstream]({repo_url}) / [rescue](https://github.com/bioc-package-rescue/{pkg})"
                 # Badge points at the default branch (no branch filter).
-                # The centralized workflow tests both release and devel Bioconductor
-                # via a matrix strategy, so one badge covers both.
                 rescue_ci = (f"[![Rescue CI](https://img.shields.io/github/actions/workflow/status/bioc-package-rescue/{pkg}/check-bioc.yml?label=Rescue%20CI)]"
                              f"(https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml)")
             else:
-                rescue_status = "NA"
+                repo_cell = f"[upstream]({repo_url})"
                 rescue_ci = "NA"
             
-            row = f"| {package_link} | {pkg_type} | {build_page_link} | {distinct_ips} | {repo_link} | {build_badge_markdown} | {rescue_status} | {rescue_ci} |"
+            row = f"| {package_link} | {pkg_type} | {build_page_link} | {distinct_ips} | {repo_cell} | {build_badge_markdown} | {rescue_ci} |"
             table_lines.append(row)
             
     return "\n".join(table_lines)
