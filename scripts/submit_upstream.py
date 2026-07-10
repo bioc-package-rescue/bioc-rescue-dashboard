@@ -120,10 +120,8 @@ def main():
         # Create GitHub Pull Request back to upstream parent
         pr_title = f"Fix R CMD check build/check errors for {pkg}"
         pr_body = (
-            f"This pull request contains automatically-verified fixes for `{pkg}` to resolve build/check errors "
-            f"on Bioconductor. All checks have been run and verified green in our rescue fork check suite.\n\n"
-            f"Please review and merge these changes back into your upstream repository.\n\n"
-            f"Co-authored-by: Antigravity <gemini@google.com>"
+            f"This pull request contains AI-generated fixes for `{pkg}` that have been verified to resolve current Bioconductor build/check errors.\n\n"
+            f"Please review these changes, and if they look OK, merge them back into your upstream git.bioconductor.org repository.\n\n"
         )
         print(f"Creating pull request to {parent_slug}...")
         pr_url = run([
