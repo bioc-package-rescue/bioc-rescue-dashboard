@@ -134,7 +134,7 @@ Run `update_reusable_workflows.py` to batch-apply or refresh this stub across al
 ## Fixing Packages ("Go Until Green")
 
 Once rescue repos exist and the GHA workflow is running, the goal is to make each
-repo pass `R CMD check` and BiocCheck with no ERRORs and no WARNINGs. NOTEs are
+repo pass `R CMD check` and BiocCheck with no ERRORs. WARNINGs and NOTEs are
 informational and can be ignored.
 
 ### Ground Rules
@@ -159,7 +159,7 @@ informational and can be ignored.
    env GITHUB_TOKEN="" gh run list --repo bioc-package-rescue/<PKG>
    env GITHUB_TOKEN="" gh run view <RUN_ID> --repo bioc-package-rescue/<PKG> --log-failed
 
-2. Parse all ERRORs and WARNINGs; ignore NOTEs
+2. Parse all ERRORs; ignore WARNINGs and NOTEs
 
 3. Create a fix branch
    git -C <PKG> checkout -b fix/<short-description>
@@ -172,7 +172,7 @@ informational and can be ignored.
 6. Wait for GHA to complete, then check the result
    env GITHUB_TOKEN="" gh run list --repo bioc-package-rescue/<PKG>
 
-7a. No ERRORs or WARNINGs → open a PR
+7a. No ERRORs → open a PR
     env GITHUB_TOKEN="" gh pr create --repo bioc-package-rescue/<PKG> \
       --title "Fix R CMD check errors" --body "..." --base <default-branch>
 
