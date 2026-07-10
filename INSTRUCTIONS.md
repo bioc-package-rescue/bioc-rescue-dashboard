@@ -146,8 +146,7 @@ informational and can be ignored.
 
 - **One package at a time** — complete the full fix loop for one package before
   starting the next.
-- **Always open a PR** — never push fixes directly to the default branch. PRs allow
-  human and GitHub Copilot review before merging.
+- **Always open a PR** — never push fixes directly to the default branch. 
 - **Rescue fork only** — fixes stay in the `bioc-package-rescue` fork. Upstream PRs
   to the original maintainer's repo are out of scope and are done manually.
 - **GHA is the authority** — the local machine (aarch64 macOS) may differ from the
@@ -184,9 +183,8 @@ informational and can be ignored.
 
 7b. Still failing → return to step 1 and iterate
 
-8. Monitor and address feedback — wait for and address feedback from human
-   and GitHub Copilot reviews on the pull request. Push any necessary fixes
-   to the branch until the PR is approved and merged.
+8. Monitor and address feedback — wait for and address feedback from GitHub Copilot reviews on the pull request. Push any necessary fixes
+to the branch until the PR is approved and merged.
 ```
 
 ### Common Error Classes
