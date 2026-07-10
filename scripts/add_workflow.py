@@ -53,7 +53,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - { bioc: 'release', image: 'bioconductor/bioconductor_docker:RELEASE_3_21' }
+          - { bioc: 'release', image: 'bioconductor/bioconductor_docker:RELEASE_3_23' }
           - { bioc: 'devel',   image: 'bioconductor/bioconductor_docker:devel'         }
 
     env:
