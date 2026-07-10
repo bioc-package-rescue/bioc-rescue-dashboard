@@ -25,6 +25,9 @@ parsed_status_db = {}
 # { pkg_name: distinct_ips }
 parsed_stats_db = {}
 
+# Package name -> package type mapping derived from build databases
+package_types = {}
+
 def get_landing_page_url(package_name, pkg_type):
     if pkg_type == "Software":
         segment = "bioc"
@@ -72,6 +75,9 @@ def load_build_databases():
                     if builder not in parsed_status_db[pkg]:
                         parsed_status_db[pkg][builder] = {}
                     parsed_status_db[pkg][builder][stage] = status
+                    
+                    if pkg not in package_types:
+                        package_types[pkg] = pkg_type
             print(f"  Successfully parsed {pkg_type} DB.")
         except Exception as e:
             print(f"  Warning: Failed to load build status DB for {pkg_type} from {url}: {e}")
@@ -173,12 +179,13 @@ def get_package_build_status(package_name, pkg_type):
         return "note"
     return "OK"
 
-def fetch_deprecated_packages():
-    print(f"Fetching deprecated packages from {HELP_WANTED_URL}...")
+def fetch_help_wanted_html():
+    print(f"Fetching Help Wanted page from {HELP_WANTED_URL}...")
     req = urllib.request.Request(HELP_WANTED_URL, headers={'User-Agent': 'Mozilla/5.0'})
     with urllib.request.urlopen(req) as resp:
-        html = resp.read().decode('utf-8')
-        
+        return resp.read().decode('utf-8')
+
+def parse_deprecated_packages(html):
     release_start = html.find('<h3>RELEASE</h3>')
     if release_start == -1:
         raise ValueError("Could not find RELEASE section on Help Wanted page")
@@ -217,35 +224,30 @@ def fetch_deprecated_packages():
         
     return packages
 
-def main():
-    print("Starting deprecated packages table generation...")
-    try:
-        packages = fetch_deprecated_packages()
-    except Exception as e:
-        print(f"Error fetching deprecated packages list: {e}")
-        return
-        
-    load_build_databases()
-    load_download_stats(target_year="2025")
+def parse_voluntarily_listed_packages(html):
+    start_pos = html.find('id="voluntarily-listed"')
+    if start_pos == -1:
+        return []
+    end_pos = html.find('id="deprecated-packages"', start_pos)
+    if end_pos == -1:
+        end_pos = len(html)
+    sub_html = html[start_pos:end_pos]
     
-    markdown_lines = []
-    markdown_lines.append("# Deprecated Bioconductor Packages")
+    links = re.findall(r'href="/packages/([^"/]+)(?:/")?"', sub_html)
+    return sorted(list(set(links)))
+
+def generate_markdown_table(packages_dict):
+    table_lines = []
+    table_lines.append("| Package | Type | Build Page | Downloads (2025 IPs) | Repository | Bioconductor Build Status | Rescue Status |")
+    table_lines.append("| --- | --- | --- | --- | --- | --- | --- |")
     
-    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    markdown_lines.append(f"*Last updated: {now_str}*")
-    markdown_lines.append("")
-    markdown_lines.append("| Package | Type | Build Page | Downloads (2025 IPs) | Repository | Bioconductor Build Status | Rescue Status |")
-    markdown_lines.append("| --- | --- | --- | --- | --- | --- | --- |")
-    
-    # Process packages sequentially
-    total_packages = sum(len(pkgs) for pkgs in packages.values())
+    total_packages = sum(len(pkgs) for pkgs in packages_dict.values())
     processed_count = 0
     
-    for pkg_type, package_list in packages.items():
-        print(f"\nProcessing {pkg_type} packages...")
+    for pkg_type, package_list in packages_dict.items():
+        print(f"  Processing {pkg_type} list...")
         for pkg in sorted(package_list):
             processed_count += 1
-            print(f"[{processed_count}/{total_packages}] Processing {pkg}...")
             
             landing_url = get_landing_page_url(pkg, pkg_type)
             build_page_url = get_build_page_url(pkg, pkg_type)
@@ -288,14 +290,61 @@ def main():
                 rescue_status = "NA"
             
             row = f"| {package_link} | {pkg_type} | {build_page_link} | {distinct_ips} | {repo_link} | {build_badge_markdown} | {rescue_status} |"
-            markdown_lines.append(row)
+            table_lines.append(row)
             
+    return "\n".join(table_lines)
+
+def main():
+    print("Starting deprecated and voluntarily listed packages table generation...")
+    try:
+        html = fetch_help_wanted_html()
+        deprecated_packages = parse_deprecated_packages(html)
+        voluntarily_listed = parse_voluntarily_listed_packages(html)
+    except Exception as e:
+        print(f"Error fetching/parsing Help Wanted page: {e}")
+        return
+        
+    load_build_databases()
+    load_download_stats(target_year="2025")
+    
+    # Map voluntarily listed packages to their types
+    voluntarily_packages_grouped = {
+        "Software": [],
+        "ExperimentData": [],
+        "AnnotationData": []
+    }
+    for pkg in voluntarily_listed:
+        ptype = package_types.get(pkg, "Software")
+        voluntarily_packages_grouped[ptype].append(pkg)
+        
+    markdown_lines = []
+    markdown_lines.append("# Bioconductor Package Rescue Dashboard")
+    
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    markdown_lines.append(f"*Last updated: {now_str}*")
+    markdown_lines.append("")
+    
+    markdown_lines.append("## Deprecated Packages")
+    markdown_lines.append("These packages are scheduled for deprecation in Bioconductor.")
+    markdown_lines.append("")
+    print("\nGenerating Deprecated Packages Table...")
+    deprecated_table = generate_markdown_table(deprecated_packages)
+    markdown_lines.append(deprecated_table)
+    markdown_lines.append("")
+    
+    markdown_lines.append("## Voluntarily Listed Packages")
+    markdown_lines.append("These packages are voluntarily listed by their maintainers as needing transfer or assistance.")
+    markdown_lines.append("")
+    print("\nGenerating Voluntarily Listed Packages Table...")
+    voluntarily_table = generate_markdown_table(voluntarily_packages_grouped)
+    markdown_lines.append(voluntarily_table)
+    
     # Write to README.md in the parent directory (bioc-rescue-dashboard root)
     output_filepath = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "README.md"))
     with open(output_filepath, "w") as f:
         f.write("\n".join(markdown_lines) + "\n")
         
-    print(f"\nDone! Table successfully written to {output_filepath}")
+    print(f"\nDone! Dashboard successfully written to {output_filepath}")
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,8 @@
-# Deprecated Bioconductor Packages
-*Last updated: 2026-07-10 14:55:43*
+# Bioconductor Package Rescue Dashboard
+*Last updated: 2026-07-10 14:57:34*
+
+## Deprecated Packages
+These packages are scheduled for deprecation in Bioconductor.
 
 | Package | Type | Build Page | Downloads (2025 IPs) | Repository | Bioconductor Build Status | Rescue Status |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -62,3 +65,11 @@
 | [curatedBreastData](https://bioconductor.org/packages/release/data/experiment/html/curatedBreastData.html) | ExperimentData | [Build Page](https://bioconductor.org/checkResults/release/data-experiment-LATEST/curatedBreastData/) | 1599 | [Repo](https://git.bioconductor.org/packages/curatedBreastData) | ![Build](https://www.bioconductor.org/shields/build/release/data-experiment/curatedBreastData.svg) | NA |
 | [rRDPData](https://bioconductor.org/packages/release/data/experiment/html/rRDPData.html) | ExperimentData | [Build Page](https://bioconductor.org/checkResults/release/data-experiment-LATEST/rRDPData/) | 1351 | [Repo](https://git.bioconductor.org/packages/rRDPData) | ![Build](https://www.bioconductor.org/shields/build/release/data-experiment/rRDPData.svg) | NA |
 | [hpAnnot](https://bioconductor.org/packages/release/data/annotation/html/hpAnnot.html) | AnnotationData | [Build Page](https://bioconductor.org/checkResults/release/data-annotation-LATEST/hpAnnot/) | 518 | [Repo](https://git.bioconductor.org/packages/hpAnnot) | ![Build](https://img.shields.io/badge/build-NOTE-blue) | NA |
+
+## Voluntarily Listed Packages
+These packages are voluntarily listed by their maintainers as needing transfer or assistance.
+
+| Package | Type | Build Page | Downloads (2025 IPs) | Repository | Bioconductor Build Status | Rescue Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| [BiocStyle](https://bioconductor.org/packages/release/bioc/html/BiocStyle.html) | Software | [Build Page](https://bioconductor.org/checkResults/release/bioc-LATEST/BiocStyle/) | 57618 | [Repo](https://github.com/Bioconductor/BiocStyle) | ![Build](https://www.bioconductor.org/shields/build/release/bioc/BiocStyle.svg) | NA |
+| [VariantAnnotation](https://bioconductor.org/packages/release/bioc/html/VariantAnnotation.html) | Software | [Build Page](https://bioconductor.org/checkResults/release/bioc-LATEST/VariantAnnotation/) | 83811 | [Repo](https://git.bioconductor.org/packages/VariantAnnotation) | ![Build](https://www.bioconductor.org/shields/build/release/bioc/VariantAnnotation.svg) | [Rescue Repo](https://github.com/bioc-package-rescue/VariantAnnotation) |
