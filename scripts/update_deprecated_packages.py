@@ -238,8 +238,8 @@ def parse_voluntarily_listed_packages(html):
 
 def generate_markdown_table(packages_dict):
     table_lines = []
-    table_lines.append("| Package | Type | Build Page | Downloads (2025 IPs) | Repository | Bioconductor Build Status | Rescue Status |")
-    table_lines.append("| --- | --- | --- | --- | --- | --- | --- |")
+    table_lines.append("| Package | Type | Build Page | Downloads (2025 IPs) | Repository | Bioconductor Build Status | Rescue Status | Rescue release | Rescue devel |")
+    table_lines.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
     
     total_packages = sum(len(pkgs) for pkgs in packages_dict.values())
     processed_count = 0
@@ -286,10 +286,14 @@ def generate_markdown_table(packages_dict):
             # Rescue Status is set to the organization repo if build status is ERROR
             if build_status == "error":
                 rescue_status = f"[Rescue Repo](https://github.com/bioc-package-rescue/{pkg})"
+                rescue_release = f"![Release](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml/badge.svg?branch=RELEASE_3_23)"
+                rescue_devel = f"![Devel](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml/badge.svg?branch=devel)"
             else:
                 rescue_status = "NA"
+                rescue_release = "NA"
+                rescue_devel = "NA"
             
-            row = f"| {package_link} | {pkg_type} | {build_page_link} | {distinct_ips} | {repo_link} | {build_badge_markdown} | {rescue_status} |"
+            row = f"| {package_link} | {pkg_type} | {build_page_link} | {distinct_ips} | {repo_link} | {build_badge_markdown} | {rescue_status} | {rescue_release} | {rescue_devel} |"
             table_lines.append(row)
             
     return "\n".join(table_lines)
