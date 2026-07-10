@@ -3,26 +3,7 @@ import re
 import datetime
 import os
 
-# Input list of deprecated packages grouped by type
-PACKAGES = {
-    "Software": [
-        "BubbleTree", "CuratedAtlasQueryR", "IONiseR", "hmdbQuery", "rols", "scviR", "SGCP",
-        "APAlyzer", "ballgown", "bamsignals", "barcodetrackR", "basecallQC", "biobroom",
-        "biodbChebi", "BiRewire", "BPRMeth", "CelliD", "ChIPQC", "ccrepe", "cummeRbund",
-        "debCAM", "DeconRNASeq", "geneXtendeR", "GEOexplorer", "GNET2", "granulator",
-        "hca", "IMAS", "Melissa", "MetaNeighbor", "MethReg", "mfa", "microSTASIS",
-        "MineICA", "motifcounter", "MSPrep", "nearBynding", "netprioR", "normr",
-        "Organism.dplyr", "partCNV", "RcisTarget", "receptLoss", "RgnTX", "RiboProfiling",
-        "RTCGA", "shiny.gosling", "soGGi", "SigFuge", "spatzie", "SQLDataFrame",
-        "supersigs", "tLOH"
-    ],
-    "ExperimentData": [
-        "curatedBreastData", "Fletcher2013b", "rRDPData"
-    ],
-    "AnnotationData": [
-        "hpAnnot"
-    ]
-}
+HELP_WANTED_URL = "https://bioconductor.org/developers/help_wanted/"
 
 BUILD_DATABASES = {
     "Software": "https://bioconductor.org/checkResults/release/bioc-LATEST/BUILD_STATUS_DB.txt",
@@ -192,8 +173,58 @@ def get_package_build_status(package_name, pkg_type):
         return "note"
     return "OK"
 
+def fetch_deprecated_packages():
+    print(f"Fetching deprecated packages from {HELP_WANTED_URL}...")
+    req = urllib.request.Request(HELP_WANTED_URL, headers={'User-Agent': 'Mozilla/5.0'})
+    with urllib.request.urlopen(req) as resp:
+        html = resp.read().decode('utf-8')
+        
+    release_start = html.find('<h3>RELEASE</h3>')
+    if release_start == -1:
+        raise ValueError("Could not find RELEASE section on Help Wanted page")
+        
+    devel_start = html.find('<h3>DEVEL</h3>', release_start)
+    if devel_start == -1:
+        devel_start = len(html)
+        
+    release_html = html[release_start:devel_start]
+    
+    sec_mappings = {
+        "Software Packages": "Software",
+        "Experiment Packages": "ExperimentData",
+        "Annotation Packages": "AnnotationData"
+    }
+    
+    packages = {
+        "Software": [],
+        "ExperimentData": [],
+        "AnnotationData": []
+    }
+    
+    for sec_header, pkg_type in sec_mappings.items():
+        header_pattern = rf"<h6>{sec_header}</h6>"
+        header_match = re.search(header_pattern, release_html)
+        if not header_match:
+            continue
+            
+        start_idx = header_match.end()
+        next_headers = [m.start() for m in re.finditer(r"<h6>|<h3>", release_html[start_idx:])]
+        end_idx = start_idx + (next_headers[0] if next_headers else len(release_html) - start_idx)
+        
+        sub_html = release_html[start_idx:end_idx]
+        links = re.findall(r'href="/packages/([^/]+)/"', sub_html)
+        packages[pkg_type] = sorted(list(set(links)))
+        
+    return packages
+
 def main():
     print("Starting deprecated packages table generation...")
+    try:
+        packages = fetch_deprecated_packages()
+    except Exception as e:
+        print(f"Error fetching deprecated packages list: {e}")
+        return
+        
     load_build_databases()
     load_download_stats(target_year="2025")
     
@@ -207,10 +238,10 @@ def main():
     markdown_lines.append("| --- | --- | --- | --- | --- | --- | --- |")
     
     # Process packages sequentially
-    total_packages = sum(len(pkgs) for pkgs in PACKAGES.values())
+    total_packages = sum(len(pkgs) for pkgs in packages.values())
     processed_count = 0
     
-    for pkg_type, package_list in PACKAGES.items():
+    for pkg_type, package_list in packages.items():
         print(f"\nProcessing {pkg_type} packages...")
         for pkg in sorted(package_list):
             processed_count += 1
