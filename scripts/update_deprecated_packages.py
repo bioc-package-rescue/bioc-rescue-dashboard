@@ -1,9 +1,10 @@
+import csv
 import urllib.request
 import re
 import datetime
 import os
 
-HELP_WANTED_URL = "https://bioconductor.org/developers/help_wanted/"
+PACKAGES_CSV = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "packages.csv")
 
 BUILD_DATABASES = {
     "Software": "https://bioconductor.org/checkResults/release/bioc-LATEST/BUILD_STATUS_DB.txt",
@@ -179,62 +180,23 @@ def get_package_build_status(package_name, pkg_type):
         return "note"
     return "OK"
 
-def fetch_help_wanted_html():
-    print(f"Fetching Help Wanted page from {HELP_WANTED_URL}...")
-    req = urllib.request.Request(HELP_WANTED_URL, headers={'User-Agent': 'Mozilla/5.0'})
-    with urllib.request.urlopen(req) as resp:
-        return resp.read().decode('utf-8')
+def load_packages_csv():
+    """Read packages.csv and return two grouped dicts:
+    deprecated_packages and voluntarily_packages, both {type: [pkg, ...]}.
+    Also includes 'manual' entries in the voluntarily bucket."""
+    deprecated = {"Software": [], "ExperimentData": [], "AnnotationData": []}
+    voluntary  = {"Software": [], "ExperimentData": [], "AnnotationData": []}
+    with open(PACKAGES_CSV, newline="") as f:
+        for row in csv.DictReader(f):
+            pkg  = row["package"]
+            ptype = row["type"] if row["type"] in deprecated else "Software"
+            src   = row["source"]
+            if src == "deprecated":
+                deprecated[ptype].append(pkg)
+            else:  # voluntarily-listed or manual
+                voluntary[ptype].append(pkg)
+    return deprecated, voluntary
 
-def parse_deprecated_packages(html):
-    release_start = html.find('<h3>RELEASE</h3>')
-    if release_start == -1:
-        raise ValueError("Could not find RELEASE section on Help Wanted page")
-        
-    devel_start = html.find('<h3>DEVEL</h3>', release_start)
-    if devel_start == -1:
-        devel_start = len(html)
-        
-    release_html = html[release_start:devel_start]
-    
-    sec_mappings = {
-        "Software Packages": "Software",
-        "Experiment Packages": "ExperimentData",
-        "Annotation Packages": "AnnotationData"
-    }
-    
-    packages = {
-        "Software": [],
-        "ExperimentData": [],
-        "AnnotationData": []
-    }
-    
-    for sec_header, pkg_type in sec_mappings.items():
-        header_pattern = rf"<h6>{sec_header}</h6>"
-        header_match = re.search(header_pattern, release_html)
-        if not header_match:
-            continue
-            
-        start_idx = header_match.end()
-        next_headers = [m.start() for m in re.finditer(r"<h6>|<h3>", release_html[start_idx:])]
-        end_idx = start_idx + (next_headers[0] if next_headers else len(release_html) - start_idx)
-        
-        sub_html = release_html[start_idx:end_idx]
-        links = re.findall(r'href="/packages/([^/]+)/"', sub_html)
-        packages[pkg_type] = sorted(list(set(links)))
-        
-    return packages
-
-def parse_voluntarily_listed_packages(html):
-    start_pos = html.find('id="voluntarily-listed"')
-    if start_pos == -1:
-        return []
-    end_pos = html.find('id="deprecated-packages"', start_pos)
-    if end_pos == -1:
-        end_pos = len(html)
-    sub_html = html[start_pos:end_pos]
-    
-    links = re.findall(r'href="/packages/([^"/]+)(?:/")?"', sub_html)
-    return sorted(list(set(links)))
 
 def generate_markdown_table(packages_dict):
     table_lines = []
@@ -300,54 +262,38 @@ def generate_markdown_table(packages_dict):
 
 def main():
     print("Starting deprecated and voluntarily listed packages table generation...")
-    try:
-        html = fetch_help_wanted_html()
-        deprecated_packages = parse_deprecated_packages(html)
-        voluntarily_listed = parse_voluntarily_listed_packages(html)
-    except Exception as e:
-        print(f"Error fetching/parsing Help Wanted page: {e}")
-        return
-        
+    print(f"Reading package list from {PACKAGES_CSV}...")
+    deprecated_packages, voluntarily_packages = load_packages_csv()
+
     load_build_databases()
     load_download_stats(target_year="2025")
-    
-    # Map voluntarily listed packages to their types
-    voluntarily_packages_grouped = {
-        "Software": [],
-        "ExperimentData": [],
-        "AnnotationData": []
-    }
-    for pkg in voluntarily_listed:
-        ptype = package_types.get(pkg, "Software")
-        voluntarily_packages_grouped[ptype].append(pkg)
-        
+
     markdown_lines = []
     markdown_lines.append("# Bioconductor Package Rescue Dashboard")
-    
+
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     markdown_lines.append(f"*Last updated: {now_str}*")
     markdown_lines.append("")
-    
+
     markdown_lines.append("## Deprecated Packages")
     markdown_lines.append("These packages are scheduled for deprecation in Bioconductor.")
     markdown_lines.append("")
     print("\nGenerating Deprecated Packages Table...")
-    deprecated_table = generate_markdown_table(deprecated_packages)
-    markdown_lines.append(deprecated_table)
+    markdown_lines.append(generate_markdown_table(deprecated_packages))
     markdown_lines.append("")
-    
+
     markdown_lines.append("## Voluntarily Listed Packages")
     markdown_lines.append("These packages are voluntarily listed by their maintainers as needing transfer or assistance.")
     markdown_lines.append("")
     print("\nGenerating Voluntarily Listed Packages Table...")
-    voluntarily_table = generate_markdown_table(voluntarily_packages_grouped)
-    markdown_lines.append(voluntarily_table)
-    
-    # Write to README.md in the parent directory (bioc-rescue-dashboard root)
-    output_filepath = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "README.md"))
+    markdown_lines.append(generate_markdown_table(voluntarily_packages))
+
+    output_filepath = os.path.abspath(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "README.md")
+    )
     with open(output_filepath, "w") as f:
         f.write("\n".join(markdown_lines) + "\n")
-        
+
     print(f"\nDone! Dashboard successfully written to {output_filepath}")
 
 if __name__ == "__main__":
