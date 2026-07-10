@@ -200,8 +200,8 @@ def load_packages_csv():
 
 def generate_markdown_table(packages_dict):
     table_lines = []
-    table_lines.append("| Package | Type | Build Page | Downloads (2025 IPs) | Repository | Bioconductor Build Status | Rescue Status | Rescue release | Rescue devel |")
-    table_lines.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+    table_lines.append("| Package | Type | Build Page | Downloads (2025 IPs) | Repository | Bioconductor Build Status | Rescue Status | Rescue CI |")
+    table_lines.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
     
     total_packages = sum(len(pkgs) for pkgs in packages_dict.values())
     processed_count = 0
@@ -248,14 +248,16 @@ def generate_markdown_table(packages_dict):
             # Rescue Status is set to the organization repo if build status is ERROR
             if build_status == "error":
                 rescue_status = f"[Rescue Repo](https://github.com/bioc-package-rescue/{pkg})"
-                rescue_release = f"[![Release](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml/badge.svg?branch=RELEASE_3_23)](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml?query=branch%3ARELEASE_3_23)"
-                rescue_devel = f"[![Devel](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml/badge.svg?branch=devel)](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml?query=branch%3Adevel)"
+                # Badge points at the default branch (no branch filter).
+                # The centralized workflow tests both release and devel Bioconductor
+                # via a matrix strategy, so one badge covers both.
+                rescue_ci = (f"[![CI](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml/badge.svg)]"
+                             f"(https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml)")
             else:
                 rescue_status = "NA"
-                rescue_release = "NA"
-                rescue_devel = "NA"
+                rescue_ci = "NA"
             
-            row = f"| {package_link} | {pkg_type} | {build_page_link} | {distinct_ips} | {repo_link} | {build_badge_markdown} | {rescue_status} | {rescue_release} | {rescue_devel} |"
+            row = f"| {package_link} | {pkg_type} | {build_page_link} | {distinct_ips} | {repo_link} | {build_badge_markdown} | {rescue_status} | {rescue_ci} |"
             table_lines.append(row)
             
     return "\n".join(table_lines)
