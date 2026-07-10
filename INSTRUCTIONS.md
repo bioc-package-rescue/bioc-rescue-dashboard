@@ -105,12 +105,7 @@ Reads `packages.csv`, fetches the current Bioconductor build status and most rec
 - **URL**: `https://github.com/bioc-package-rescue/workflows`
 - **File**: `.github/workflows/check-bioc.yml`
 
-This holds the full workflow definition. To update the Bioconductor release version:
-1. Edit the `image:` lines in the matrix config:
-   ```yaml
-   - { bioc: 'release', image: 'bioconductor/bioconductor_docker:RELEASE_3_23' }
-   ```
-2. Commit and push to `main`. All package repositories pick up the change on their next run — no per-repo edits needed.
+This holds the full workflow definition. The checks are run only against the **Bioconductor Devel** Docker image (`bioconductor/bioconductor_docker:devel`). To update or change the check parameters, modify this workflow file, commit, and push to `main`. All package repositories pick up the change on their next run — no per-repo edits needed.
 
 ### Package-level caller stub
 
