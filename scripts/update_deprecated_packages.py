@@ -251,7 +251,7 @@ def generate_markdown_table(packages_dict):
                 # Badge points at the default branch (no branch filter).
                 # The centralized workflow tests both release and devel Bioconductor
                 # via a matrix strategy, so one badge covers both.
-                rescue_ci = (f"[![CI](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml/badge.svg)]"
+                rescue_ci = (f"[![Rescue CI](https://img.shields.io/github/actions/workflow/status/bioc-package-rescue/{pkg}/check-bioc.yml?label=Rescue%20CI)]"
                              f"(https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml)")
             else:
                 rescue_status = "NA"
