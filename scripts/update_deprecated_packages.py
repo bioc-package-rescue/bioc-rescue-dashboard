@@ -248,8 +248,8 @@ def generate_markdown_table(packages_dict):
             # Rescue Status is set to the organization repo if build status is ERROR
             if build_status == "error":
                 rescue_status = f"[Rescue Repo](https://github.com/bioc-package-rescue/{pkg})"
-                rescue_release = f"![Release](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml/badge.svg?branch=RELEASE_3_23)"
-                rescue_devel = f"![Devel](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml/badge.svg?branch=devel)"
+                rescue_release = f"[![Release](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml/badge.svg?branch=RELEASE_3_23)](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml?query=branch%3ARELEASE_3_23)"
+                rescue_devel = f"[![Devel](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml/badge.svg?branch=devel)](https://github.com/bioc-package-rescue/{pkg}/actions/workflows/check-bioc.yml?query=branch%3Adevel)"
             else:
                 rescue_status = "NA"
                 rescue_release = "NA"
