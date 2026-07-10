@@ -249,7 +249,12 @@ def main():
             package_link = f"[{pkg}]({landing_url})"
             build_page_link = f"[Build Page]({build_page_url})"
             repo_link = f"[Repo]({repo_url})"
-            rescue_status = "NA"
+            
+            # Rescue Status is set to the organization repo if build status is ERROR
+            if build_status == "error":
+                rescue_status = f"[Rescue Repo](https://github.com/bioc-package-rescue/{pkg})"
+            else:
+                rescue_status = "NA"
             
             row = f"| {package_link} | {pkg_type} | {build_page_link} | {distinct_ips} | {repo_link} | {build_badge_markdown} | {rescue_status} |"
             markdown_lines.append(row)
