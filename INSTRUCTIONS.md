@@ -133,3 +133,79 @@ jobs:
 ```
 
 Run `update_reusable_workflows.py` to batch-apply or refresh this stub across all local checkouts.
+
+---
+
+## Fixing Packages ("Go Until Green")
+
+Once rescue repos exist and the GHA workflow is running, the goal is to make each
+repo pass `R CMD check` and BiocCheck with no ERRORs and no WARNINGs. NOTEs are
+informational and can be ignored.
+
+### Ground Rules
+
+- **One package at a time** — complete the full fix loop for one package before
+  starting the next.
+- **Always open a PR** — never push fixes directly to the default branch. PRs allow
+  human and GitHub Copilot review before merging.
+- **Rescue fork only** — fixes stay in the `bioc-package-rescue` fork. Upstream PRs
+  to the original maintainer's repo are out of scope and are done manually.
+- **GHA is the authority** — the local machine (aarch64 macOS) may differ from the
+  GHA environment (x86_64 Ubuntu inside Bioconductor Docker). Always confirm fixes
+  via the GHA run, not just local `Rscript` output.
+- **Include the co-author trailer** in every commit:
+  ```
+  Co-authored-by: Antigravity <gemini@google.com>
+  ```
+
+### Single-Package Fix Loop
+
+```
+1. Fetch latest GHA logs
+   env GITHUB_TOKEN="" gh run list --repo bioc-package-rescue/<PKG>
+   env GITHUB_TOKEN="" gh run view <RUN_ID> --repo bioc-package-rescue/<PKG> --log-failed
+
+2. Parse all ERRORs and WARNINGs; ignore NOTEs
+
+3. Create a fix branch
+   git -C <PKG> checkout -b fix/<short-description>
+
+4. Apply fix(es) to source files
+
+5. Push the branch → GHA is triggered automatically
+   git -C <PKG> push origin fix/<short-description>
+
+6. Wait for GHA to complete, then check the result
+   env GITHUB_TOKEN="" gh run list --repo bioc-package-rescue/<PKG>
+
+7a. No ERRORs or WARNINGs → open a PR
+    env GITHUB_TOKEN="" gh pr create --repo bioc-package-rescue/<PKG> \
+      --title "Fix R CMD check errors" --body "..." --base <default-branch>
+
+7b. Still failing → return to step 1 and iterate
+```
+
+### Common Error Classes
+
+| Error class | Severity | Examples | Typical fix |
+|-------------|----------|----------|-------------|
+| Deprecated API | ERROR | `graph.incidence()` → `graph_from_biadjacency_matrix()` | Update R code or example |
+| Hard dependency broken | ERROR | Upstream package removed or renamed | Update `DESCRIPTION` imports |
+| Failing unit test | ERROR | Test written against a stale API | Fix the test |
+| Vignette build failure | ERROR | LaTeX / knitr error | Update vignette |
+| Missing `\\link` package anchor | WARNING | `\\link{Foo}` without package qualifier | Change to `\\link[pkg]{Foo}` in Rd |
+| Lost braces in Rd | WARNING | `\\itemize` where `\\describe` is required | Fix Rd markup |
+| `\\usage` / signature mismatch | WARNING | Function arguments changed since Rd was written | Update Rd or re-roxygenize |
+
+### Iterating Over All Packages
+
+1. **Triage** — for every package in `packages.csv` that has a rescue repo, fetch
+   the latest GHA result and record the error class and severity.
+2. **Fix & iterate** — work through the queue one package at a time using the loop
+   above.
+3. **Dashboard** — after a batch of PRs is merged, regenerate the README:
+   ```bash
+   python scripts/update_deprecated_packages.py
+   git add README.md && git commit -m "Update dashboard"
+   git push origin main
+   ```
