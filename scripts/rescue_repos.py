@@ -5,25 +5,7 @@ import urllib.request
 import time
 import shutil
 
-PACKAGES = {
-    "Software": [
-        "BubbleTree", "CuratedAtlasQueryR", "IONiseR", "hmdbQuery", "rols", "scviR", "SGCP",
-        "APAlyzer", "ballgown", "bamsignals", "barcodetrackR", "basecallQC", "biobroom",
-        "biodbChebi", "BiRewire", "BPRMeth", "CelliD", "ChIPQC", "ccrepe", "cummeRbund",
-        "debCAM", "DeconRNASeq", "geneXtendeR", "GEOexplorer", "GNET2", "granulator",
-        "hca", "IMAS", "Melissa", "MetaNeighbor", "MethReg", "mfa", "microSTASIS",
-        "MineICA", "motifcounter", "MSPrep", "nearBynding", "netprioR", "normr",
-        "Organism.dplyr", "partCNV", "RcisTarget", "receptLoss", "RgnTX", "RiboProfiling",
-        "RTCGA", "shiny.gosling", "soGGi", "SigFuge", "spatzie", "SQLDataFrame",
-        "supersigs", "tLOH"
-    ],
-    "ExperimentData": [
-        "curatedBreastData", "Fletcher2013b", "rRDPData"
-    ],
-    "AnnotationData": [
-        "hpAnnot"
-    ]
-}
+HELP_WANTED_URL = "https://bioconductor.org/developers/help_wanted/"
 
 BUILD_DATABASES = {
     "Software": "https://bioconductor.org/checkResults/release/bioc-LATEST/BUILD_STATUS_DB.txt",
@@ -32,7 +14,66 @@ BUILD_DATABASES = {
 }
 
 parsed_status_db = {}
+package_types = {}
 temp_dir_base = "/Users/Levi/git/bioc-package-rescue/bioc-rescue-dashboard/scripts/temp_clones"
+
+def fetch_help_wanted_packages():
+    print(f"Fetching Help Wanted page from {HELP_WANTED_URL}...")
+    try:
+        req = urllib.request.Request(HELP_WANTED_URL, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req) as resp:
+            html = resp.read().decode('utf-8')
+            
+        release_start = html.find('<h3>RELEASE</h3>')
+        if release_start == -1:
+            raise ValueError("Could not find RELEASE section on Help Wanted page")
+            
+        devel_start = html.find('<h3>DEVEL</h3>', release_start)
+        if devel_start == -1:
+            devel_start = len(html)
+            
+        release_html = html[release_start:devel_start]
+        
+        sec_mappings = {
+            "Software Packages": "Software",
+            "Experiment Packages": "ExperimentData",
+            "Annotation Packages": "AnnotationData"
+        }
+        
+        packages = []
+        
+        # Parse Deprecated section
+        for sec_header, pkg_type in sec_mappings.items():
+            header_pattern = rf"<h6>{sec_header}</h6>"
+            header_match = re.search(header_pattern, release_html)
+            if not header_match:
+                continue
+                
+            start_idx = header_match.end()
+            next_headers = [m.start() for m in re.finditer(r"<h6>|<h3>", release_html[start_idx:])]
+            end_idx = start_idx + (next_headers[0] if next_headers else len(release_html) - start_idx)
+            
+            sub_html = release_html[start_idx:end_idx]
+            links = re.findall(r'href="/packages/([^/]+)/"', sub_html)
+            for pkg in sorted(list(set(links))):
+                packages.append((pkg, pkg_type))
+                
+        # Parse Voluntarily Listed section
+        start_pos = html.find('id="voluntarily-listed"')
+        if start_pos != -1:
+            end_pos = html.find('id="deprecated-packages"', start_pos)
+            if end_pos == -1:
+                end_pos = len(html)
+            sub_html = html[start_pos:end_pos]
+            
+            v_links = re.findall(r'href="/packages/([^"/]+)(?:/")?"', sub_html)
+            for pkg in sorted(list(set(v_links))):
+                packages.append((pkg, None))
+                
+        return packages
+    except Exception as e:
+        print(f"Error fetching/parsing Help Wanted page: {e}")
+        return []
 
 def get_landing_page_url(package_name, pkg_type):
     if pkg_type == "Software":
@@ -68,6 +109,7 @@ def load_build_databases():
                     if builder not in parsed_status_db[pkg]:
                         parsed_status_db[pkg][builder] = {}
                     parsed_status_db[pkg][builder][stage] = status
+                    package_types[pkg] = pkg_type
         except Exception as e:
             print(f"Error loading {pkg_type} DB: {e}")
 
@@ -177,14 +219,20 @@ def main():
     print("Loading build databases...")
     load_build_databases()
     
-    # Find all packages with status == error
+    # Fetch all help wanted packages
+    packages = fetch_help_wanted_packages()
+    
+    # Filter and find all packages with status == error
     error_packages = []
-    for pkg_type, package_list in PACKAGES.items():
-        for pkg in sorted(package_list):
-            status = get_package_build_status(pkg)
-            if status == "error":
-                repo = get_repo_url(pkg, pkg_type)
-                error_packages.append((pkg, repo))
+    for pkg, pkg_type in packages:
+        if pkg_type is None:
+            # Resolve type for voluntarily listed packages from the database or default to Software
+            pkg_type = package_types.get(pkg, "Software")
+            
+        status = get_package_build_status(pkg)
+        if status == "error":
+            repo = get_repo_url(pkg, pkg_type)
+            error_packages.append((pkg, repo))
                 
     total = len(error_packages)
     print(f"Found {total} packages with ERROR status.")

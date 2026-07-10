@@ -2,6 +2,7 @@ import os
 import subprocess
 import re
 import urllib.request
+import time
 
 HELP_WANTED_URL = "https://bioconductor.org/developers/help_wanted/"
 
@@ -12,8 +13,22 @@ BUILD_DATABASES = {
 }
 
 parsed_status_db = {}
-package_types = {}
 workspace_root = "/Users/Levi/git/bioc-package-rescue"
+
+workflow_content = """name: R-CMD-check-bioc
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - devel
+  pull_request:
+
+jobs:
+  run-check:
+    uses: bioc-package-rescue/workflows/.github/workflows/check-bioc.yml@main
+"""
 
 def fetch_help_wanted_packages():
     print(f"Fetching Help Wanted page from {HELP_WANTED_URL}...")
@@ -96,7 +111,6 @@ def load_build_databases():
                     if builder not in parsed_status_db[pkg]:
                         parsed_status_db[pkg][builder] = {}
                     parsed_status_db[pkg][builder][stage] = status
-                    package_types[pkg] = pkg_type
         except Exception as e:
             print(f"Error loading {pkg_type} DB: {e}")
 
@@ -110,6 +124,13 @@ def get_package_build_status(package_name):
             if status in ["ERROR", "TIMEOUT"]:
                 has_error = True
     return "error" if has_error else "OK"
+
+def run_command(args, cwd=None):
+    env = os.environ.copy()
+    if 'GITHUB_TOKEN' in env:
+        del env['GITHUB_TOKEN']
+    result = subprocess.run(args, capture_output=True, text=True, cwd=cwd, env=env)
+    return result
 
 def main():
     print("Loading build databases...")
@@ -129,34 +150,63 @@ def main():
     print(f"Found {total} packages with ERROR status.")
     
     success_count = 0
-    skipped_count = 0
     failed_count = 0
     
     for idx, pkg in enumerate(error_packages, 1):
         local_path = os.path.join(workspace_root, pkg)
         print(f"\n[{idx}/{total}] Processing {pkg}...")
         
-        # Check if local directory exists
-        if os.path.exists(local_path):
-            print(f"  [Skip] Local directory {local_path} already exists.")
-            skipped_count += 1
+        if not os.path.exists(local_path):
+            print(f"  [Error] Local repository path {local_path} does not exist.")
+            failed_count += 1
             continue
             
-        github_ssh_url = f"git@github.com:bioc-package-rescue/{pkg}.git"
-        print(f"  Cloning {github_ssh_url} to {local_path}...")
-        
-        res = subprocess.run(["git", "clone", github_ssh_url, local_path], capture_output=True, text=True)
-        if res.returncode == 0:
-            print(f"  Successfully cloned {pkg}.")
-            success_count += 1
-        else:
-            print(f"  Error cloning {pkg}: {res.stderr.strip()}")
+        # Get active branch name
+        branch_res = run_command(["git", "branch", "--show-current"], cwd=local_path)
+        if branch_res.returncode != 0:
+            print(f"  [Error] Could not get active branch for {pkg}: {branch_res.stderr.strip()}")
             failed_count += 1
+            continue
+        active_branch = branch_res.stdout.strip()
+        print(f"  Active branch: {active_branch}")
+        
+        # Write workflow file
+        workflows_dir = os.path.join(local_path, ".github", "workflows")
+        os.makedirs(workflows_dir, exist_ok=True)
+        workflow_path = os.path.join(workflows_dir, "check-bioc.yml")
+        
+        with open(workflow_path, "w") as f:
+            f.write(workflow_content)
             
-    print(f"\nLocal cloning complete!")
-    print(f"  Total packages: {total}")
-    print(f"  Successfully cloned: {success_count}")
-    print(f"  Skipped (already exist): {skipped_count}")
+        # Stage, commit, and push
+        run_command(["git", "add", ".github/workflows/check-bioc.yml"], cwd=local_path)
+        
+        # Check if anything changed
+        status_res = run_command(["git", "status", "--porcelain"], cwd=local_path)
+        if ".github/workflows/check-bioc.yml" in status_res.stdout:
+            commit_res = run_command(["git", "commit", "-m", "Use centralized check-bioc GHA workflow", "--author=Antigravity <gemini@google.com>"], cwd=local_path)
+            if commit_res.returncode != 0:
+                print(f"  [Error] Failed to commit for {pkg}: {commit_res.stderr.strip()}")
+                failed_count += 1
+                continue
+            print(f"  Committed workflow.")
+        else:
+            print(f"  Workflow already committed or no changes.")
+            
+        # Push to remote
+        push_res = run_command(["git", "push", "origin", active_branch], cwd=local_path)
+        if push_res.returncode != 0:
+            print(f"  [Error] Failed to push {pkg} branch {active_branch}: {push_res.stderr.strip()}")
+            failed_count += 1
+            continue
+            
+        print(f"  Successfully updated and pushed workflow for {pkg}.")
+        success_count += 1
+        time.sleep(0.5) # simple rate limit politeness
+        
+    print(f"\nBatch processing complete!")
+    print(f"  Total error packages: {total}")
+    print(f"  Successfully updated and pushed: {success_count}")
     print(f"  Failed: {failed_count}")
 
 if __name__ == "__main__":
