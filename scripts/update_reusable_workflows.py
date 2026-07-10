@@ -109,8 +109,8 @@ def main():
         changed = ".github/workflows/check-bioc.yml" in run(["git", "status", "--porcelain"], cwd=local).stdout
 
         if changed:
-            r = run(["git", "commit", "--author=Antigravity <gemini@google.com>",
-                     "-m", "Use centralized check-bioc GHA workflow"], cwd=local)
+            msg = "Use centralized check-bioc GHA workflow\n\nCo-authored-by: Antigravity <gemini@google.com>"
+            r = run(["git", "commit", "-m", msg], cwd=local)
             if r.returncode != 0:
                 print(f"  [Error] Commit failed: {r.stderr.strip()}")
                 failed += 1
