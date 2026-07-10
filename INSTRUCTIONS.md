@@ -205,7 +205,14 @@ to the branch until the PR is approved and merged.
    the latest GHA result and record the error class and severity.
 2. **Fix & iterate** — work through the queue one package at a time using the loop
    above.
-3. **Dashboard** — after a batch of PRs is merged, regenerate the README:
+3. **Upstream PR Submission** — once the rescue PR is verified green, you can
+   automatically open a clean Pull Request back to the original upstream parent
+   repository (with `.github/workflows/check-bioc.yml` automatically excluded
+   from the PR) by running:
+   ```bash
+   python scripts/submit_upstream.py <package_name> <fix_branch_name>
+   ```
+4. **Dashboard** — after a batch of PRs is merged, regenerate the README:
    ```bash
    python scripts/update_deprecated_packages.py
    git add README.md && git commit -m "Update dashboard"
