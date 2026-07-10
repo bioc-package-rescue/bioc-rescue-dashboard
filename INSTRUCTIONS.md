@@ -146,7 +146,7 @@ informational and can be ignored.
 
 - **One package at a time** — complete the full fix loop for one package before
   starting the next.
-- **Always open a PR** — never push fixes directly to the default branch. 
+- **Always open a PR** — never push fixes directly to the default branch. PRs allow GitHub Copilot review before merging.
 - **Rescue fork only** — fixes stay in the `bioc-package-rescue` fork. Upstream PRs
   to the original maintainer's repo are out of scope and are done manually.
 - **GHA is the authority** — the local machine (aarch64 macOS) may differ from the
