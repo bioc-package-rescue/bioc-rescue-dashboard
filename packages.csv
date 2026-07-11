@@ -4,6 +4,7 @@ BPRMeth,Software,deprecated
 BiRewire,Software,deprecated
 BubbleTree,Software,deprecated
 CelliD,Software,deprecated
+CSAR,Software,deprecated
 CuratedAtlasQueryR,Software,deprecated
 DeconRNASeq,Software,deprecated
 Fletcher2013b,ExperimentData,deprecated
@@ -48,6 +49,7 @@ netZooR,Software,deprecated
 netprioR,Software,deprecated
 normr,Software,deprecated
 partCNV,Software,deprecated
+pathRender,Software,deprecated
 rRDPData,ExperimentData,deprecated
 receptLoss,Software,deprecated
 rols,Software,deprecated

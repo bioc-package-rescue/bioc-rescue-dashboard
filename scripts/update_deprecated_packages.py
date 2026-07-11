@@ -243,8 +243,9 @@ def generate_markdown_table(packages_dict):
             # Build Row
             package_link = f"[{pkg}]({landing_url})"
             build_page_link = f"[Build Page]({build_page_url})"
-            # If build status is ERROR, we have a rescue repo
-            if build_status == "error":
+            # If build status is ERROR, or the local repo directory exists, we have a rescue repo
+            local_repo_path = os.path.join(os.path.dirname(PACKAGES_CSV), "..", pkg)
+            if build_status == "error" or os.path.isdir(local_repo_path):
                 repo_cell = f"[upstream]({repo_url}) / [rescue](https://github.com/bioc-package-rescue/{pkg})"
                 # Badge points at the default branch (no branch filter).
                 rescue_ci = (f"[![Rescue CI](https://img.shields.io/github/actions/workflow/status/bioc-package-rescue/{pkg}/check-bioc.yml?label=Rescue%20CI)]"
