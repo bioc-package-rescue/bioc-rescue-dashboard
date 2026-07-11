@@ -7,12 +7,22 @@ This document contains the complete diffs, commit summaries, and line change sta
 **Substantive Commits:**
 - Fix ggplot2 labs call error in boxplot_cluster_expr
 - Remove invalid blank line from DESCRIPTION and bump version
+- Add non-standard files to .Rbuildignore
 
 **Line Changes:**
-`STAT_LINES_CHANGED: BPRMeth | 3 files changed, 3 insertions(+), 5 deletions(-)`
+`STAT_LINES_CHANGED: BPRMeth | 4 files changed, 5 insertions(+), 5 deletions(-)`
 
 **Complete Diff:**
 ```diff
+diff --git a/.Rbuildignore b/.Rbuildignore
+index 91114bf..a522e80 100644
+--- a/.Rbuildignore
++++ b/.Rbuildignore
+@@ -1,2 +1,4 @@
+ ^.*\.Rproj$
+ ^\.Rproj\.user$
++
++^data-raw$
 diff --git a/DESCRIPTION b/DESCRIPTION
 index a8e2857..dd4d3b7 100644
 --- a/DESCRIPTION
@@ -196,12 +206,23 @@ index 2266103..e528e02 100755
 **Substantive Commits:**
 - Fix ggplot2 S4 class validation using setOldClass
 - Remove duplicate Author/Maintainer fields in DESCRIPTION to satisfy BiocCheck
+- Add non-standard files to .Rbuildignore
 
 **Line Changes:**
-`STAT_LINES_CHANGED: BubbleTree | 2 files changed, 3 insertions(+), 8 deletions(-)`
+`STAT_LINES_CHANGED: BubbleTree | 3 files changed, 7 insertions(+), 8 deletions(-)`
 
 **Complete Diff:**
 ```diff
+diff --git a/.Rbuildignore b/.Rbuildignore
+new file mode 100644
+index 0000000..bfb255e
+--- /dev/null
++++ b/.Rbuildignore
+@@ -0,0 +1,4 @@
++
++^Rprofile$
++
++^examples$
 diff --git a/DESCRIPTION b/DESCRIPTION
 index 5f2965e..c7b56a0 100644
 --- a/DESCRIPTION
@@ -797,12 +818,22 @@ index fa4bf76..2bcd172 100644
 - Fix defunct dplyr summarise_each error
 - Set self_contained: false in vignette to stay under 5MB file limit
 - Fix legacy Author/Maintainer fields and replace .Deprecated in zzz.R
+- Remove inadvertently committed log file
+- Add non-standard files to .Rbuildignore
 
 **Line Changes:**
-`STAT_LINES_CHANGED: IONiseR | 5 files changed, 9 insertions(+), 9 deletions(-)`
+`STAT_LINES_CHANGED: IONiseR | 6 files changed, 11 insertions(+), 9 deletions(-)`
 
 **Complete Diff:**
 ```diff
+diff --git a/.Rbuildignore b/.Rbuildignore
+new file mode 100644
+index 0000000..fa165d4
+--- /dev/null
++++ b/.Rbuildignore
+@@ -0,0 +1,2 @@
++
++^\.travis\.yml$
 diff --git a/DESCRIPTION b/DESCRIPTION
 index ba4d06c..bfac658 100644
 --- a/DESCRIPTION
@@ -929,12 +960,23 @@ index 1da94c2..3a0130b 100644
 - Change vignette output format to html_vignette to fix pdf compiler dependency
 - Fix igraph adjacency matrix NA failure on newer igraph versions
 - Fix BiocCheck errors: remove legacy Maintainer, replace .Deprecated in zzz.R, and add missing \value sections in Rd documentation
+- Add non-standard files to .Rbuildignore
 
 **Line Changes:**
-`STAT_LINES_CHANGED: MetaNeighbor | 31 files changed, 268 insertions(+), 15 deletions(-)`
+`STAT_LINES_CHANGED: MetaNeighbor | 32 files changed, 257 insertions(+), 9 deletions(-)`
 
 **Complete Diff:**
 ```diff
+diff --git a/.Rbuildignore b/.Rbuildignore
+new file mode 100644
+index 0000000..d97c788
+--- /dev/null
++++ b/.Rbuildignore
+@@ -0,0 +1,4 @@
++^doc$
++^Meta$
++
++^Documentation\.md$
 diff --git a/DESCRIPTION b/DESCRIPTION
 index 06d123d..cdd1fb2 100644
 --- a/DESCRIPTION
@@ -1025,7 +1067,7 @@ index 1bc8298..cdcd7b9 100644
  subsetClusterGraph <- function(graph, vertices) {
      return(igraph::induced_subgraph(graph, vertices))
 diff --git a/R/meta_clusters.R b/R/meta_clusters.R
-index 0057309..f90eb1b 100644
+index 0057309..e1ca08d 100644
 --- a/R/meta_clusters.R
 +++ b/R/meta_clusters.R
 @@ -17,6 +17,11 @@
@@ -1067,13 +1109,10 @@ index 0057309..f90eb1b 100644
  #' @export
  scoreMetaClusters <- function(meta_clusters, best_hits,
                                outlier_label = "outliers") {
-@@ -99,12 +112,25 @@ scoreMetaClusters <- function(meta_clusters, best_hits,
- #' @param auroc_cols Vector containing RGB colors used to encode AUROC levels. 
+@@ -100,6 +113,16 @@ scoreMetaClusters <- function(meta_clusters, best_hits,
  #' The length of auroc_cols must correspond to the length of auroc_breaks - 1.
  #' @param auroc_breaks Numeric vector used to bin AUROC values for color coding.
-+#' @param outlier_label Element of meta-cluster list containing outlier
-+#' clusters.
-+#'
+ #'
 +#' @return A meta-clusters plot.
 +#'
 +#' @examples
@@ -1083,29 +1122,10 @@ index 0057309..f90eb1b 100644
 +#' mcs <- extractMetaClusters(best_hits, threshold = 0.5)
 +#' plotMetaClusters(mcs, best_hits)
 +#' }
- #'
++#'
  #' @export
  plotMetaClusters <- function(
      meta_clusters, best_hits, reorder=FALSE, cex = 1, study_cols = NULL,
-     auroc_breaks = c(0, 0.5, 0.7, 0.9, 0.95, 0.99, 1),
--    auroc_cols = grDevices::colorRampPalette(c("white", "blue"))(length(auroc_breaks)-1)
-+    auroc_cols = grDevices::colorRampPalette(c("white", "blue"))(length(auroc_breaks)-1),
-+    outlier_label = "outliers"
- ) {
-   if (length(meta_clusters) == 0) { return(list()); }
- 
-@@ -116,8 +142,10 @@ plotMetaClusters <- function(
-   }
-     
-   for (i in seq_along(meta_clusters)) {
-+    if (names(meta_clusters)[i] == outlier_label) next
-     c <- meta_clusters[[i]]
--    dat <- best_hits[c, c]
-+    if (length(c) < 2) next
-+    dat <- best_hits[c, c, drop = FALSE]
-     comp_cols <- study_cols[getStudyId(rownames(dat))]
-     comp_cell_types <- getCellType(rownames(dat))
-     if (reorder) {
 diff --git a/R/preprocessing.R b/R/preprocessing.R
 index ec5d669..ba2cf0d 100644
 --- a/R/preprocessing.R
@@ -1515,30 +1535,16 @@ index ede8676..8128858 100644
  Plots rectangular AUROC heatmap, clustering train cell types (columns)
  by similarity, and ordering test cell types (rows) according to similarity
 diff --git a/man/plotMetaClusters.Rd b/man/plotMetaClusters.Rd
-index e1a1e0b..d35811a 100644
+index e1a1e0b..27caab7 100644
 --- a/man/plotMetaClusters.Rd
 +++ b/man/plotMetaClusters.Rd
-@@ -13,7 +13,8 @@ plotMetaClusters(
-   study_cols = NULL,
-   auroc_breaks = c(0, 0.5, 0.7, 0.9, 0.95, 0.99, 1),
-   auroc_cols = (grDevices::colorRampPalette(c("white", "blue")))(length(auroc_breaks) -
--    1)
-+    1),
-+  outlier_label = "outliers"
- )
- }
- \arguments{
-@@ -34,8 +35,23 @@ If NULL, a default color palette is used.}
- 
+@@ -35,7 +35,19 @@ If NULL, a default color palette is used.}
  \item{auroc_cols}{Vector containing RGB colors used to encode AUROC levels. 
  The length of auroc_cols must correspond to the length of auroc_breaks - 1.}
-+
-+\item{outlier_label}{Element of meta-cluster list containing outlier
-+clusters.}
-+}
+ }
 +\value{
 +A meta-clusters plot.
- }
++}
  \description{
  Plot meta-cluster badges, each badge is a small AUROC heatmap restricted to
  a specific meta-cluster.
@@ -1666,7 +1672,7 @@ index 011de95..256e1c9 100644
  \seealso{
  \code{\link{extendClusterSet}}
 diff --git a/vignettes/MetaNeighbor.Rmd b/vignettes/MetaNeighbor.Rmd
-index ac1dc58..28e574d 100644
+index ac1dc58..a78138a 100644
 --- a/vignettes/MetaNeighbor.Rmd
 +++ b/vignettes/MetaNeighbor.Rmd
 @@ -3,7 +3,7 @@ title: "MetaNeighbor : a method to rapidly assess cell type identity using both
@@ -1678,33 +1684,6 @@ index ac1dc58..28e574d 100644
      fig_caption: yes
      number_sections: yes
      toc: yes
-@@ -475,7 +475,7 @@ gplots::heatmap.2(celltype_NV,
-                   cexCol = 0.7)
- ```
- 
--![MNUS_pancreas_2](./figures/MNUS_pancreas_2)
-+![MNUS_pancreas_2](./figures/MNUS_pancreas_2.png)
- <figure align="center">
- <figcaption>
- </figcaption>
-@@ -519,7 +519,7 @@ gplots::heatmap.2(celltype_NV,
-                   cexCol = 0.7)
- ```
- 
--![MNUS_pancreas_5](./figures/MNUS_pancreas_5)
-+![MNUS_pancreas_5](./figures/MNUS_pancreas_5.png)
- <figure align="center">
- <figcaption>
- </figcaption>
-@@ -542,7 +542,7 @@ AUROC_scores = MetaNeighbor(dat = small_pancreas,
-                             fast_version = TRUE)
- ```
- 
--![MN_pancreas](./figures/MN_pancreas)
-+![MN_pancreas](./figures/MN_pancreas.png)
- <figure align="center">
- <figcaption>
- </figcaption>
 ```
 
 ## MethReg
@@ -2225,12 +2204,23 @@ index 03a8364..54e4170 100644
 - Replace defunct dplyr summarise_each in examples and vignette
 - Replace defunct dplyr mutate_ with mutate using tidy evaluation
 - Fix BiocCheck errors: remove legacy Maintainer, add missing \value sections to Rd files, and add vignette metadata to Rmd files
+- Add non-standard files to .Rbuildignore
 
 **Line Changes:**
-`STAT_LINES_CHANGED: RTCGA | 26 files changed, 311 insertions(+), 261 deletions(-)`
+`STAT_LINES_CHANGED: RTCGA | 27 files changed, 313 insertions(+), 261 deletions(-)`
 
 **Complete Diff:**
 ```diff
+diff --git a/.Rbuildignore b/.Rbuildignore
+index c218b84..cabdac6 100644
+--- a/.Rbuildignore
++++ b/.Rbuildignore
+@@ -30,3 +30,5 @@ vignettes/Visualizations.html
+ vignettes/Data_Download.html
+ vignettes/Data_Download.Rmd
+ UseCases/
++
++^_pkgdown\.yml$
 diff --git a/DESCRIPTION b/DESCRIPTION
 index f773ff0..95f14d1 100644
 --- a/DESCRIPTION
@@ -4273,9 +4263,10 @@ index 969967d..d4f1d83 100644
 
 **Substantive Commits:**
 - Replace defunct dplyr tbl_df with as_tibble
+- Restore original CRLF line endings for modified files
 
 **Line Changes:**
-`STAT_LINES_CHANGED: basecallQC | 14 files changed, 1060 insertions(+), 1097 deletions(-)`
+`STAT_LINES_CHANGED: basecallQC | 14 files changed, 83 insertions(+), 120 deletions(-)`
 
 **Complete Diff:**
 ```diff
@@ -4323,773 +4314,238 @@ index 9bb117a..d40a8f7 100644
  importFrom(utils, write.table)
  
 diff --git a/R/plots.R b/R/plots.R
-index 11afb9d..560199f 100644
+index 11afb9d..d48f6d8 100644
 --- a/R/plots.R
 +++ b/R/plots.R
-@@ -1,396 +1,367 @@
--
--#' Barplot of Illumina basecalling statistics for reads passing filter.
--#'
--#' Produces a barplot of Illumina basecalling statistics for reads passing filter.
--#' 
--#' @usage
--#' \S4method{passFilterBar}{baseCallQC}(object,groupBy,metricToPlot)
--#'
--#' @docType methods
--#' @name passFilterBar
--#' @rdname passFilterBar
--#' @aliases passFilterBar passFilterBar,baseCallQC-method
--#' 
--#' @author Thomas Carroll and Marian Dore
--#' @param object A  basecallQC object or list from call to baseCallMetrics()
--#' @param groupBy Character vector of how data is grouped for plotting. Should be either "Project","Sample","Lane","Tile","ReadNumber".
--#' @param metricToPlot Character vector defining which metric will be displayed in plot. Should be either "Yield","Yield30","QualityScoreSum" or "ClusterCount".
--#' @return A ggplot2 object.
--#' @import stringr XML RColorBrewer methods raster BiocStyle
--#' @examples
--#' fileLocations <- system.file("extdata",package="basecallQC")
--#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
--#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
--#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
--#' outDir <- file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/C9L0AANXX/")
--#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),outDir,verbose=FALSE)
--#' bclQC <- basecallQC(bcl2fastqparams,RunMetaData=NULL,sampleSheet)
--#' plot <- passFilterBar(bclQC)
--
--#' @export
--passFilterBar.basecallQC <- function(object,groupBy=c("Lane"),metricToPlot="Yield"){
--  groupByS <- unique(c(groupBy,"Filter"))
--  groupByG <- unique(c(groupBy))
--  toPlot <- object@baseCallMetrics$convStatsProcessed %>%
+@@ -32,17 +32,14 @@ passFilterBar.basecallQC <- function(object,groupBy=c("Lane"),metricToPlot="Yiel
+   groupByS <- unique(c(groupBy,"Filter"))
+   groupByG <- unique(c(groupBy))
+   toPlot <- object@baseCallMetrics$convStatsProcessed %>%
 -    group_by_(.dots=as.list(groupByS)) %>%
--    filter(Sample != "all") %>%
++    group_by(across(all_of(groupByS))) %>%
+     filter(Sample != "all") %>%
 -    summarise_(.dots = setNames(list(interp( ~sum(as.numeric(var)),
 -                                             var=as.name(metricToPlot))
 -    )
 -    ,metricToPlot)) %>%
 -    spread_("Filter",metricToPlot) %>%
--    mutate(Ff=Raw-Pf) %>%
--    dplyr::select(-Raw) %>%
++    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
++    pivot_wider(names_from = "Filter", values_from = all_of(metricToPlot)) %>%
+     mutate(Ff=Raw-Pf) %>%
+     dplyr::select(-Raw) %>%
 -    tbl_df %>%
 -    gather_(key_col="PassFilter",value_col=as.name(metricToPlot),c("Ff","Pf"))
--  p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill="PassFilter"))+geom_bar(stat = "identity")+ coord_flip()
--  return(p)
--}
--
--setGeneric("passFilterBar", function(object="basecallQC",groupBy="character",metricToPlot="character") standardGeneric("passFilterBar"))
--
--#' @rdname passFilterBar
--#' @export
--setMethod("passFilterBar", signature(object="basecallQC"), passFilterBar.basecallQC)
--
--
--passFilterBar.list <- function(object,groupBy=c("Lane"),metricToPlot="Yield"){
--  groupByS <- unique(c(groupBy,"Filter"))
--  groupByG <- unique(c(groupBy))
--  toPlot <- object$convStatsProcessed %>%
++    as_tibble %>%
++    pivot_longer(cols = c("Ff","Pf"), names_to = "PassFilter", values_to = metricToPlot)
+   p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill="PassFilter"))+geom_bar(stat = "identity")+ coord_flip()
+   return(p)
+ }
+@@ -58,17 +55,14 @@ passFilterBar.list <- function(object,groupBy=c("Lane"),metricToPlot="Yield"){
+   groupByS <- unique(c(groupBy,"Filter"))
+   groupByG <- unique(c(groupBy))
+   toPlot <- object$convStatsProcessed %>%
 -    group_by_(.dots=as.list(groupByS)) %>%
--    filter(Sample != "all") %>%
++    group_by(across(all_of(groupByS))) %>%
+     filter(Sample != "all") %>%
 -    summarise_(.dots = setNames(list(interp( ~sum(as.numeric(var)),
 -                                             var=as.name(metricToPlot))
 -    )
 -    ,metricToPlot)) %>%
 -    spread_("Filter",metricToPlot) %>%
--    mutate(Ff=Raw-Pf) %>%
--    dplyr::select(-Raw) %>%
++    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
++    pivot_wider(names_from = "Filter", values_from = all_of(metricToPlot)) %>%
+     mutate(Ff=Raw-Pf) %>%
+     dplyr::select(-Raw) %>%
 -    tbl_df %>%
 -    gather_(key_col="PassFilter",value_col=as.name(metricToPlot),c("Ff","Pf"))
--  p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill="PassFilter"))+geom_bar(stat = "identity")+ coord_flip()
--  return(p)
--}
--
--#' @rdname passFilterBar
--#' @export
--setMethod("passFilterBar", signature(object="list"),passFilterBar.list)
--
--
--#' Boxplot of Illumina basecalling statistics for reads passing filter.
--#'
--#' Produces a boxplot of basecalling statistics for reads passing filter.
--#'
--#' @usage
--#' \S4method{passFilterBoxplot}{baseCallQC}(object,groupBy,metricToPlot)
--#' @docType methods
--#' @name passFilterBoxplot
--#' @rdname passFilterBoxplot
--#' @aliases passFilterBoxplot passFilterBoxplot,baseCallQC-method
--#' 
--#' @author Thomas Carroll and Marian Dore
--#' @param object A  basecallQC object or list from call to baseCallMetrics()
--#' @param groupBy Character vector of how data is grouped for plotting. Should be either "Project","Sample","Lane","Tile","ReadNumber".
--#' @param metricToPlot Character vector defining which metric will be displayed in plot. Should be either "Yield","Yield30","QualityScoreSum" or "ClusterCount".
--#' @return  A ggplot2 object.
--#' @import stringr XML RColorBrewer methods raster BiocStyle
--#' @examples
--#' fileLocations <- system.file("extdata",package="basecallQC")
--#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
--#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
--#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
--#' outDir <- file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/C9L0AANXX/")
--#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),outDir,verbose=FALSE)
--#' bclQC <- basecallQC(bcl2fastqparams,RunMetaData=NULL,sampleSheet)
--#' plot <- passFilterBoxplot(bclQC,groupBy = "Sample")
--#' @export
--passFilterBoxplot.basecallQC <- function(object,groupBy=c("Lane"),metricToPlot="Yield"){
--  groupByS <- unique(c("Lane","Sample","Tile","Filter"))
--  groupByG <- unique(c(groupBy))
--  toPlot <- object@baseCallMetrics$convStatsProcessed %>%
++    as_tibble %>%
++    pivot_longer(cols = c("Ff","Pf"), names_to = "PassFilter", values_to = metricToPlot)
+   p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill="PassFilter"))+geom_bar(stat = "identity")+ coord_flip()
+   return(p)
+ }
+@@ -109,17 +103,14 @@ passFilterBoxplot.basecallQC <- function(object,groupBy=c("Lane"),metricToPlot="
+   groupByS <- unique(c("Lane","Sample","Tile","Filter"))
+   groupByG <- unique(c(groupBy))
+   toPlot <- object@baseCallMetrics$convStatsProcessed %>%
 -    group_by_(.dots=as.list(groupByS)) %>%
--    filter(Sample != "all") %>%
++    group_by(across(all_of(groupByS))) %>%
+     filter(Sample != "all") %>%
 -    summarise_(.dots = setNames(list(interp( ~sum(as.numeric(var)),
 -                                             var=as.name(metricToPlot))
 -    )
 -    ,metricToPlot)) %>%
 -    spread_("Filter",metricToPlot) %>%
--    mutate(Ff=Raw-Pf) %>%
--    dplyr::select(-Raw) %>%
++    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
++    pivot_wider(names_from = "Filter", values_from = all_of(metricToPlot)) %>%
+     mutate(Ff=Raw-Pf) %>%
+     dplyr::select(-Raw) %>%
 -    tbl_df %>%
 -    gather_(key_col="PassFilter",value_col=as.name(metricToPlot),c("Ff","Pf"))
--  p <- ggplot(data=toPlot,aes_string(x=groupByG,y="Yield",fill="PassFilter"))+geom_violin(scale="width")+ coord_flip()+facet_grid(PassFilter~.,scales = "free")+geom_jitter()
--  return(p)
--}
--
--setGeneric("passFilterBoxplot", function(object="basecallQC",groupBy="character",metricToPlot="character") standardGeneric("passFilterBoxplot"))
--
--#' @rdname passFilterBoxplot
--#' @export
--setMethod("passFilterBoxplot", signature(object="basecallQC"), passFilterBoxplot.basecallQC)
--
--passFilterBoxplot.list <- function(object,groupBy=c("Lane"),metricToPlot="Yield"){
--  groupByS <- unique(c("Lane","Sample","Tile","Filter"))
--  groupByG <- unique(c(groupBy))
--  toPlot <- object$convStatsProcessed %>%
++    as_tibble %>%
++    pivot_longer(cols = c("Ff","Pf"), names_to = "PassFilter", values_to = metricToPlot)
+   p <- ggplot(data=toPlot,aes_string(x=groupByG,y="Yield",fill="PassFilter"))+geom_violin(scale="width")+ coord_flip()+facet_grid(PassFilter~.,scales = "free")+geom_jitter()
+   return(p)
+ }
+@@ -134,17 +125,14 @@ passFilterBoxplot.list <- function(object,groupBy=c("Lane"),metricToPlot="Yield"
+   groupByS <- unique(c("Lane","Sample","Tile","Filter"))
+   groupByG <- unique(c(groupBy))
+   toPlot <- object$convStatsProcessed %>%
 -    group_by_(.dots=as.list(groupByS)) %>%
--    filter(Sample != "all") %>%
++    group_by(across(all_of(groupByS))) %>%
+     filter(Sample != "all") %>%
 -    summarise_(.dots = setNames(list(interp( ~sum(as.numeric(var)),
 -                                             var=as.name(metricToPlot))
 -    )
 -    ,metricToPlot)) %>%
 -    spread_("Filter",metricToPlot) %>%
--    mutate(Ff=Raw-Pf) %>%
--    dplyr::select(-Raw) %>%
++    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
++    pivot_wider(names_from = "Filter", values_from = all_of(metricToPlot)) %>%
+     mutate(Ff=Raw-Pf) %>%
+     dplyr::select(-Raw) %>%
 -    tbl_df %>%
 -    gather_(key_col="PassFilter",value_col=as.name(metricToPlot),c("Ff","Pf"))
--  p <- ggplot(data=toPlot,aes_string(x=groupByG,y="Yield",fill="PassFilter"))+geom_violin(scale="width")+ coord_flip()+facet_grid(PassFilter~.,scales = "free")+geom_jitter()
--  return(p)
--}
--
--#' @rdname passFilterBoxplot
--#' @export
--setMethod("passFilterBoxplot", signature(object="list"),passFilterBoxplot.list)
--
--
--#' Tile plot of Illumina basecalling statistics for reads passing filter.
--#'
--#' Produces a plot of metric per Tile for basecalling statistics of reads passing/failing filter.
--#'
--#' @usage
--#' \S4method{passFilterTilePlot}{baseCallQC}(object,metricToPlot)
--#' @docType methods
--#' @name passFilterTilePlot
--#' @rdname passFilterTilePlot
--#' @aliases passFilterTilePlot passFilterTilePlot,baseCallQC-method
--#' @author Thomas Carroll and Marian Dore
--#' @param object  A  basecallQC object or list from call to baseCallMetrics()
--#' @param metricToPlot Character vector defining which metric will be displayed in plot. Should be either "Yield","Yield30","QualityScoreSum" or "ClusterCount".
--#' @return A ggplot2 object.
--#' @import stringr XML RColorBrewer methods raster BiocStyle
--#' @examples
--#' fileLocations <- system.file("extdata",package="basecallQC")
--#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
--#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
--#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
--#' outDir <- file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/C9L0AANXX/")
--#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),outDir,verbose=FALSE)
--#' bclQC <- basecallQC(bcl2fastqparams,RunMetaData=NULL,sampleSheet)
--#' plot <- passFilterTilePlot(bclQC,metricToPlot="Yield")
--#' @export
--passFilterTilePlot.basecallQC <- function(object,metricToPlot="Yield"){
--  groupByS <- unique(c("Lane","Sample","Tile","Filter"))
--  #groupByG <- unique(c(groupBy))
--  toPlot <- object@baseCallMetrics$convStatsProcessed %>%
++    as_tibble %>%
++    pivot_longer(cols = c("Ff","Pf"), names_to = "PassFilter", values_to = metricToPlot)
+   p <- ggplot(data=toPlot,aes_string(x=groupByG,y="Yield",fill="PassFilter"))+geom_violin(scale="width")+ coord_flip()+facet_grid(PassFilter~.,scales = "free")+geom_jitter()
+   return(p)
+ }
+@@ -183,17 +171,14 @@ passFilterTilePlot.basecallQC <- function(object,metricToPlot="Yield"){
+   groupByS <- unique(c("Lane","Sample","Tile","Filter"))
+   #groupByG <- unique(c(groupBy))
+   toPlot <- object@baseCallMetrics$convStatsProcessed %>%
 -    group_by_(.dots=as.list(groupByS)) %>%
--    filter(Sample != "all") %>%
++    group_by(across(all_of(groupByS))) %>%
+     filter(Sample != "all") %>%
 -    summarise_(.dots = setNames(list(interp( ~sum(as.numeric(var)),
 -                                             var=as.name(metricToPlot))
 -    )
 -    ,metricToPlot)) %>%
 -    spread_("Filter",metricToPlot) %>%
--    mutate(Ff=Raw-Pf) %>%
--    dplyr::select(-Raw) %>%
++    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
++    pivot_wider(names_from = "Filter", values_from = all_of(metricToPlot)) %>%
+     mutate(Ff=Raw-Pf) %>%
+     dplyr::select(-Raw) %>%
 -    tbl_df %>%
 -    gather_(key_col="PassFilter",value_col=as.name(metricToPlot),c("Ff","Pf")) %>%
--    mutate(Surface=str_sub(Tile,1,1),Box=str_sub(Tile,2,2),Pos=str_sub(Tile,3))
--    pPf <- filter(toPlot,PassFilter=="Pf") %>%
--    ggplot(aes(x=Box,y=Pos))+geom_tile(aes_string(fill=metricToPlot))+facet_grid(~Lane)+scale_fill_gradient2(low = "white", high = "darkblue")+theme_bw()
--    pFf <- filter(toPlot,PassFilter=="Ff") %>%
--    ggplot(aes(x=Box,y=Pos))+geom_tile(aes_string(fill=metricToPlot))+facet_grid(~Lane)+scale_fill_gradient2(low = "white", high = "darkblue")+theme_bw()
--  return(list(PassFilter=pPf,FailFilter=pFf))
--}
--
--setGeneric("passFilterTilePlot", function(object="basecallQC",metricToPlot="character") standardGeneric("passFilterTilePlot"))
--
--#' @rdname passFilterTilePlot
--#' @export
--setMethod("passFilterTilePlot", signature(object="basecallQC"), passFilterTilePlot.basecallQC)
--
--passFilterTilePlot.list <- function(object,metricToPlot="Yield"){
--  groupByS <- unique(c("Lane","Sample","Tile","Filter"))
--  #groupByG <- unique(c(groupBy))
--  toPlot <- object$convStatsProcessed %>%
++    as_tibble %>%
++    pivot_longer(cols = c("Ff","Pf"), names_to = "PassFilter", values_to = metricToPlot) %>%
+     mutate(Surface=str_sub(Tile,1,1),Box=str_sub(Tile,2,2),Pos=str_sub(Tile,3))
+     pPf <- filter(toPlot,PassFilter=="Pf") %>%
+     ggplot(aes(x=Box,y=Pos))+geom_tile(aes_string(fill=metricToPlot))+facet_grid(~Lane)+scale_fill_gradient2(low = "white", high = "darkblue")+theme_bw()
+@@ -212,17 +197,14 @@ passFilterTilePlot.list <- function(object,metricToPlot="Yield"){
+   groupByS <- unique(c("Lane","Sample","Tile","Filter"))
+   #groupByG <- unique(c(groupBy))
+   toPlot <- object$convStatsProcessed %>%
 -    group_by_(.dots=as.list(groupByS)) %>%
--    filter(Sample != "all") %>%
++    group_by(across(all_of(groupByS))) %>%
+     filter(Sample != "all") %>%
 -    summarise_(.dots = setNames(list(interp( ~sum(as.numeric(var)),
 -                                             var=as.name(metricToPlot))
 -    )
 -    ,metricToPlot)) %>%
 -    spread_("Filter",metricToPlot) %>%
--    mutate(Ff=Raw-Pf) %>%
--    dplyr::select(-Raw) %>%
++    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
++    pivot_wider(names_from = "Filter", values_from = all_of(metricToPlot)) %>%
+     mutate(Ff=Raw-Pf) %>%
+     dplyr::select(-Raw) %>%
 -    tbl_df %>%
 -    gather_(key_col="PassFilter",value_col=as.name(metricToPlot),c("Ff","Pf")) %>%
--    mutate(Surface=str_sub(Tile,1,1),Box=str_sub(Tile,2,2),Pos=str_sub(Tile,3))
--  pPf <- filter(toPlot,PassFilter=="Pf") %>%
--    ggplot(aes(x=Box,y=Pos))+geom_tile(aes_string(fill=metricToPlot))+facet_grid(~Lane)+scale_fill_gradient2(low = "white", high = "darkblue")+theme_bw()
--  pFf <- filter(toPlot,PassFilter=="Ff") %>%
--    ggplot(aes(x=Box,y=Pos))+geom_tile(aes_string(fill=metricToPlot))+facet_grid(~Lane)+scale_fill_gradient2(low = "white", high = "darkblue")+theme_bw()
--  return(list(PassFilter=pPf,FailFilter=pFf))
--  
--}
--
--#' @rdname passFilterTilePlot
--#' @export
--setMethod("passFilterTilePlot", signature(object="list"),passFilterTilePlot.list)
--
--
--#' Boxplot of Illumina demultiplexing statistics.
--#'
--#' Produces a boxplot of demultiplexing statistics of reads with perfect/mismatched barcode.
--#'
--#' @usage
--#' \S4method{demuxBoxplot}{baseCallQC}(object,groupBy)
--#' @docType methods
--#' @name demuxBoxplot
--#' @rdname demuxBoxplot
--#' @aliases demuxBoxplot demuxBoxplot,baseCallQC-method
--#' @author Thomas Carroll and Marian Dore
--#' @param object A  basecallQC object or list from call to demultiplexMetrics()
--#' @param groupBy Character vector of how data is grouped for plotting. Should be either "Project","Sample" or "Lane".
--#' @return A ggplot2 object.
--#' @import stringr XML RColorBrewer methods raster BiocStyle
--#' @examples
--#' fileLocations <- system.file("extdata",package="basecallQC")
--#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
--#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
--#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
--#' outDir <- file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/C9L0AANXX/")
--#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),outDir,verbose=FALSE)
--#' bclQC <- basecallQC(bcl2fastqparams,RunMetaData=NULL,sampleSheet)
--#' plot <- demuxBoxplot(bclQC)
--#' @export
--demuxBoxplot.basecallQC <- function(object,groupBy=c("Lane")){
--  metricToPlot <- "Count"
--  groupByS <- unique(c("Lane","Sample","Project","Barcode","BarcodeStat"))
--  groupByG <- unique(c(groupBy))
--
--  toPlot <- object@demultiplexMetrics$demuxStatsProcessed %>%
++    as_tibble %>%
++    pivot_longer(cols = c("Ff","Pf"), names_to = "PassFilter", values_to = metricToPlot) %>%
+     mutate(Surface=str_sub(Tile,1,1),Box=str_sub(Tile,2,2),Pos=str_sub(Tile,3))
+   pPf <- filter(toPlot,PassFilter=="Pf") %>%
+     ggplot(aes(x=Box,y=Pos))+geom_tile(aes_string(fill=metricToPlot))+facet_grid(~Lane)+scale_fill_gradient2(low = "white", high = "darkblue")+theme_bw()
+@@ -268,17 +250,14 @@ demuxBoxplot.basecallQC <- function(object,groupBy=c("Lane")){
+   groupByG <- unique(c(groupBy))
+ 
+   toPlot <- object@demultiplexMetrics$demuxStatsProcessed %>%
 -    group_by_(.dots=as.list(groupByS)) %>%
--    filter(Sample != "all") %>%
++    group_by(across(all_of(groupByS))) %>%
+     filter(Sample != "all") %>%
 -    summarise_(.dots = setNames(list(interp( ~sum(as.numeric(var)),
 -                                             var=as.name(metricToPlot))
 -    )
 -    ,metricToPlot)) %>%
 -    spread_("BarcodeStat",metricToPlot) %>%
--    mutate(mismatchedBarcodeCount=BarcodeCount-PerfectBarcodeCount) %>%
--    dplyr::select(-BarcodeCount) %>%
++    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
++    pivot_wider(names_from = "BarcodeStat", values_from = all_of(metricToPlot)) %>%
+     mutate(mismatchedBarcodeCount=BarcodeCount-PerfectBarcodeCount) %>%
+     dplyr::select(-BarcodeCount) %>%
 -    tbl_df %>%
 -    gather_(key_col="BarcodeCount",value_col=as.name(metricToPlot),c("mismatchedBarcodeCount","PerfectBarcodeCount"))
--    p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill="BarcodeCount"))+geom_violin(scale = "width")+ coord_flip()+facet_grid(BarcodeCount~.)
--  return(p)
--}
--
--setGeneric("demuxBoxplot", function(object="basecallQC",groupBy="character") standardGeneric("demuxBoxplot"))
--
--#' @rdname demuxBoxplot
--#' @export
--setMethod("demuxBoxplot", signature(object="basecallQC"), demuxBoxplot.basecallQC)
--
--demuxBoxplot.list <- function(object,groupBy=c("Lane")){
--  metricToPlot <- "Count"
--  groupByS <- unique(c("Lane","Sample","Project","Barcode","BarcodeStat"))
--  groupByG <- unique(c(groupBy))
--  
--  toPlot <- object$demuxStatsProcessed %>%
++    as_tibble %>%
++    pivot_longer(cols = c("mismatchedBarcodeCount","PerfectBarcodeCount"), names_to = "BarcodeCount", values_to = metricToPlot)
+     p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill="BarcodeCount"))+geom_violin(scale = "width")+ coord_flip()+facet_grid(BarcodeCount~.)
+   return(p)
+ }
+@@ -295,17 +274,14 @@ demuxBoxplot.list <- function(object,groupBy=c("Lane")){
+   groupByG <- unique(c(groupBy))
+   
+   toPlot <- object$demuxStatsProcessed %>%
 -    group_by_(.dots=as.list(groupByS)) %>%
--    filter(Sample != "all") %>%
++    group_by(across(all_of(groupByS))) %>%
+     filter(Sample != "all") %>%
 -    summarise_(.dots = setNames(list(interp( ~sum(as.numeric(var)),
 -                                             var=as.name(metricToPlot))
 -    )
 -    ,metricToPlot)) %>%
 -    spread_("BarcodeStat",metricToPlot) %>%
--    mutate(mismatchedBarcodeCount=BarcodeCount-PerfectBarcodeCount) %>%
--    dplyr::select(-BarcodeCount) %>%
++    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
++    pivot_wider(names_from = "BarcodeStat", values_from = all_of(metricToPlot)) %>%
+     mutate(mismatchedBarcodeCount=BarcodeCount-PerfectBarcodeCount) %>%
+     dplyr::select(-BarcodeCount) %>%
 -    tbl_df %>%
 -    gather_(key_col="BarcodeCount",value_col=as.name(metricToPlot),c("mismatchedBarcodeCount","PerfectBarcodeCount"))
--  p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill="BarcodeCount"))+geom_violin(scale = "width")+ coord_flip()+facet_grid(BarcodeCount~.)
--  return(p)
--}
--
--#' @rdname demuxBoxplot
--#' @export
--setMethod("demuxBoxplot", signature(object="list"), demuxBoxplot.list)
--
--
--
--#' Barplot of Illumina demultiplexing statistics.
--#'
--#' Produces a barplot of demultiplexing statistics of reads with perfect/mismatched barcode.
--#'
--#' @usage
--#' \S4method{demuxBarplot}{baseCallQC}(object,groupBy)
--#' @docType methods
--#' @name demuxBarplot
--#' @rdname demuxBarplot
--#' @aliases demuxBarplot demuxBarplot,baseCallQC-method
--#' @author Thomas Carroll and Marian Dore
--#' @param object A  basecallQC object or list from call to demultiplexMetrics()
--#' @param groupBy Character vector of how data is grouped for plotting. Should be either "Project","Sample" or "Lane".
--#' @return A ggplot2 object.
--#' @import stringr XML RColorBrewer methods raster BiocStyle
--#' @examples
--#' fileLocations <- system.file("extdata",package="basecallQC")
--#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
--#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
--#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
--#' outDir <- file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/C9L0AANXX/")
--#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),outDir,verbose=FALSE)
--#' bclQC <- basecallQC(bcl2fastqparams,RunMetaData=NULL,sampleSheet)
--#' plot <- demuxBarplot(bclQC)
--#' @export
--demuxBarplot.basecallQC <- function(object,groupBy=c("Lane")){
--  metricToPlot <- "Count"
--  groupByS <- unique(c("Lane","Sample","Project","Barcode","BarcodeStat"))
--  groupByG <- unique(c(groupBy))
--
--  toPlot <- object@demultiplexMetrics$demuxStatsProcessed %>%
++    as_tibble %>%
++    pivot_longer(cols = c("mismatchedBarcodeCount","PerfectBarcodeCount"), names_to = "BarcodeCount", values_to = metricToPlot)
+   p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill="BarcodeCount"))+geom_violin(scale = "width")+ coord_flip()+facet_grid(BarcodeCount~.)
+   return(p)
+ }
+@@ -347,17 +323,14 @@ demuxBarplot.basecallQC <- function(object,groupBy=c("Lane")){
+   groupByG <- unique(c(groupBy))
+ 
+   toPlot <- object@demultiplexMetrics$demuxStatsProcessed %>%
 -    group_by_(.dots=as.list(groupByS)) %>%
--    filter(Sample != "all") %>%
++    group_by(across(all_of(groupByS))) %>%
+     filter(Sample != "all") %>%
 -    summarise_(.dots = setNames(list(interp( ~sum(as.numeric(var)),
 -                                             var=as.name(metricToPlot))
 -    )
 -    ,metricToPlot)) %>%
 -    spread_("BarcodeStat",metricToPlot) %>%
--    mutate(mismatchedBarcodeCount=BarcodeCount-PerfectBarcodeCount) %>%
--    dplyr::select(-BarcodeCount) %>%
++    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
++    pivot_wider(names_from = "BarcodeStat", values_from = all_of(metricToPlot)) %>%
+     mutate(mismatchedBarcodeCount=BarcodeCount-PerfectBarcodeCount) %>%
+     dplyr::select(-BarcodeCount) %>%
 -    tbl_df %>%
 -    gather_(key_col="BarcodeCount",value_col=as.name(metricToPlot),c("mismatchedBarcodeCount","PerfectBarcodeCount"))
--  p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill=groupByG))+geom_bar(stat="identity")+ coord_flip()+facet_grid(BarcodeCount~.)
--  return(p)
--}
--
--setGeneric("demuxBarplot", function(object="basecallQC",groupBy="character") standardGeneric("demuxBarplot"))
--
--#' @rdname demuxBarplot
--#' @export
--setMethod("demuxBarplot", signature(object="basecallQC"), demuxBarplot.basecallQC)
--
--demuxBarplot.list <- function(object,groupBy=c("Lane")){
--  metricToPlot <- "Count"
--  groupByS <- unique(c("Lane","Sample","Project","Barcode","BarcodeStat"))
--  groupByG <- unique(c(groupBy))
--  
--  toPlot <- object$demuxStatsProcessed %>%
++    as_tibble %>%
++    pivot_longer(cols = c("mismatchedBarcodeCount","PerfectBarcodeCount"), names_to = "BarcodeCount", values_to = metricToPlot)
+   p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill=groupByG))+geom_bar(stat="identity")+ coord_flip()+facet_grid(BarcodeCount~.)
+   return(p)
+ }
+@@ -374,16 +347,14 @@ demuxBarplot.list <- function(object,groupBy=c("Lane")){
+   groupByG <- unique(c(groupBy))
+   
+   toPlot <- object$demuxStatsProcessed %>%
 -    group_by_(.dots=as.list(groupByS)) %>%
--    filter(Sample != "all") %>%
++    group_by(across(all_of(groupByS))) %>%
+     filter(Sample != "all") %>%
 -    summarise_(.dots = setNames(list(interp( ~sum(as.numeric(var)),
 -                                             var=as.name(metricToPlot))),
 -                                metricToPlot)) %>%
 -    spread_("BarcodeStat",metricToPlot) %>%
--    mutate(mismatchedBarcodeCount=BarcodeCount-PerfectBarcodeCount) %>%
--    dplyr::select(-BarcodeCount) %>%
++    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
++    pivot_wider(names_from = "BarcodeStat", values_from = all_of(metricToPlot)) %>%
+     mutate(mismatchedBarcodeCount=BarcodeCount-PerfectBarcodeCount) %>%
+     dplyr::select(-BarcodeCount) %>%
 -    tbl_df %>%
 -    gather_(key_col="BarcodeCount",value_col=as.name(metricToPlot),c("mismatchedBarcodeCount","PerfectBarcodeCount"))
--  p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill=groupByG))+geom_bar(stat="identity")+ coord_flip()+facet_grid(BarcodeCount~.)
--  return(p)
--}
--
--#' @rdname demuxBarplot
--#' @export
--setMethod("demuxBarplot", signature(object="list"), demuxBarplot.list)
--
--
-+
-+#' Barplot of Illumina basecalling statistics for reads passing filter.
-+#'
-+#' Produces a barplot of Illumina basecalling statistics for reads passing filter.
-+#' 
-+#' @usage
-+#' \S4method{passFilterBar}{baseCallQC}(object,groupBy,metricToPlot)
-+#'
-+#' @docType methods
-+#' @name passFilterBar
-+#' @rdname passFilterBar
-+#' @aliases passFilterBar passFilterBar,baseCallQC-method
-+#' 
-+#' @author Thomas Carroll and Marian Dore
-+#' @param object A  basecallQC object or list from call to baseCallMetrics()
-+#' @param groupBy Character vector of how data is grouped for plotting. Should be either "Project","Sample","Lane","Tile","ReadNumber".
-+#' @param metricToPlot Character vector defining which metric will be displayed in plot. Should be either "Yield","Yield30","QualityScoreSum" or "ClusterCount".
-+#' @return A ggplot2 object.
-+#' @import stringr XML RColorBrewer methods raster BiocStyle
-+#' @examples
-+#' fileLocations <- system.file("extdata",package="basecallQC")
-+#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
-+#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
-+#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
-+#' outDir <- file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/C9L0AANXX/")
-+#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),outDir,verbose=FALSE)
-+#' bclQC <- basecallQC(bcl2fastqparams,RunMetaData=NULL,sampleSheet)
-+#' plot <- passFilterBar(bclQC)
-+
-+#' @export
-+passFilterBar.basecallQC <- function(object,groupBy=c("Lane"),metricToPlot="Yield"){
-+  groupByS <- unique(c(groupBy,"Filter"))
-+  groupByG <- unique(c(groupBy))
-+  toPlot <- object@baseCallMetrics$convStatsProcessed %>%
-+    group_by(across(all_of(groupByS))) %>%
-+    filter(Sample != "all") %>%
-+    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
-+    pivot_wider(names_from = "Filter", values_from = all_of(metricToPlot)) %>%
-+    mutate(Ff=Raw-Pf) %>%
-+    dplyr::select(-Raw) %>%
-+    as_tibble %>%
-+    pivot_longer(cols = c("Ff","Pf"), names_to = "PassFilter", values_to = metricToPlot)
-+  p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill="PassFilter"))+geom_bar(stat = "identity")+ coord_flip()
-+  return(p)
-+}
-+
-+setGeneric("passFilterBar", function(object="basecallQC",groupBy="character",metricToPlot="character") standardGeneric("passFilterBar"))
-+
-+#' @rdname passFilterBar
-+#' @export
-+setMethod("passFilterBar", signature(object="basecallQC"), passFilterBar.basecallQC)
-+
-+
-+passFilterBar.list <- function(object,groupBy=c("Lane"),metricToPlot="Yield"){
-+  groupByS <- unique(c(groupBy,"Filter"))
-+  groupByG <- unique(c(groupBy))
-+  toPlot <- object$convStatsProcessed %>%
-+    group_by(across(all_of(groupByS))) %>%
-+    filter(Sample != "all") %>%
-+    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
-+    pivot_wider(names_from = "Filter", values_from = all_of(metricToPlot)) %>%
-+    mutate(Ff=Raw-Pf) %>%
-+    dplyr::select(-Raw) %>%
-+    as_tibble %>%
-+    pivot_longer(cols = c("Ff","Pf"), names_to = "PassFilter", values_to = metricToPlot)
-+  p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill="PassFilter"))+geom_bar(stat = "identity")+ coord_flip()
-+  return(p)
-+}
-+
-+#' @rdname passFilterBar
-+#' @export
-+setMethod("passFilterBar", signature(object="list"),passFilterBar.list)
-+
-+
-+#' Boxplot of Illumina basecalling statistics for reads passing filter.
-+#'
-+#' Produces a boxplot of basecalling statistics for reads passing filter.
-+#'
-+#' @usage
-+#' \S4method{passFilterBoxplot}{baseCallQC}(object,groupBy,metricToPlot)
-+#' @docType methods
-+#' @name passFilterBoxplot
-+#' @rdname passFilterBoxplot
-+#' @aliases passFilterBoxplot passFilterBoxplot,baseCallQC-method
-+#' 
-+#' @author Thomas Carroll and Marian Dore
-+#' @param object A  basecallQC object or list from call to baseCallMetrics()
-+#' @param groupBy Character vector of how data is grouped for plotting. Should be either "Project","Sample","Lane","Tile","ReadNumber".
-+#' @param metricToPlot Character vector defining which metric will be displayed in plot. Should be either "Yield","Yield30","QualityScoreSum" or "ClusterCount".
-+#' @return  A ggplot2 object.
-+#' @import stringr XML RColorBrewer methods raster BiocStyle
-+#' @examples
-+#' fileLocations <- system.file("extdata",package="basecallQC")
-+#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
-+#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
-+#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
-+#' outDir <- file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/C9L0AANXX/")
-+#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),outDir,verbose=FALSE)
-+#' bclQC <- basecallQC(bcl2fastqparams,RunMetaData=NULL,sampleSheet)
-+#' plot <- passFilterBoxplot(bclQC,groupBy = "Sample")
-+#' @export
-+passFilterBoxplot.basecallQC <- function(object,groupBy=c("Lane"),metricToPlot="Yield"){
-+  groupByS <- unique(c("Lane","Sample","Tile","Filter"))
-+  groupByG <- unique(c(groupBy))
-+  toPlot <- object@baseCallMetrics$convStatsProcessed %>%
-+    group_by(across(all_of(groupByS))) %>%
-+    filter(Sample != "all") %>%
-+    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
-+    pivot_wider(names_from = "Filter", values_from = all_of(metricToPlot)) %>%
-+    mutate(Ff=Raw-Pf) %>%
-+    dplyr::select(-Raw) %>%
-+    as_tibble %>%
-+    pivot_longer(cols = c("Ff","Pf"), names_to = "PassFilter", values_to = metricToPlot)
-+  p <- ggplot(data=toPlot,aes_string(x=groupByG,y="Yield",fill="PassFilter"))+geom_violin(scale="width")+ coord_flip()+facet_grid(PassFilter~.,scales = "free")+geom_jitter()
-+  return(p)
-+}
-+
-+setGeneric("passFilterBoxplot", function(object="basecallQC",groupBy="character",metricToPlot="character") standardGeneric("passFilterBoxplot"))
-+
-+#' @rdname passFilterBoxplot
-+#' @export
-+setMethod("passFilterBoxplot", signature(object="basecallQC"), passFilterBoxplot.basecallQC)
-+
-+passFilterBoxplot.list <- function(object,groupBy=c("Lane"),metricToPlot="Yield"){
-+  groupByS <- unique(c("Lane","Sample","Tile","Filter"))
-+  groupByG <- unique(c(groupBy))
-+  toPlot <- object$convStatsProcessed %>%
-+    group_by(across(all_of(groupByS))) %>%
-+    filter(Sample != "all") %>%
-+    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
-+    pivot_wider(names_from = "Filter", values_from = all_of(metricToPlot)) %>%
-+    mutate(Ff=Raw-Pf) %>%
-+    dplyr::select(-Raw) %>%
-+    as_tibble %>%
-+    pivot_longer(cols = c("Ff","Pf"), names_to = "PassFilter", values_to = metricToPlot)
-+  p <- ggplot(data=toPlot,aes_string(x=groupByG,y="Yield",fill="PassFilter"))+geom_violin(scale="width")+ coord_flip()+facet_grid(PassFilter~.,scales = "free")+geom_jitter()
-+  return(p)
-+}
-+
-+#' @rdname passFilterBoxplot
-+#' @export
-+setMethod("passFilterBoxplot", signature(object="list"),passFilterBoxplot.list)
-+
-+
-+#' Tile plot of Illumina basecalling statistics for reads passing filter.
-+#'
-+#' Produces a plot of metric per Tile for basecalling statistics of reads passing/failing filter.
-+#'
-+#' @usage
-+#' \S4method{passFilterTilePlot}{baseCallQC}(object,metricToPlot)
-+#' @docType methods
-+#' @name passFilterTilePlot
-+#' @rdname passFilterTilePlot
-+#' @aliases passFilterTilePlot passFilterTilePlot,baseCallQC-method
-+#' @author Thomas Carroll and Marian Dore
-+#' @param object  A  basecallQC object or list from call to baseCallMetrics()
-+#' @param metricToPlot Character vector defining which metric will be displayed in plot. Should be either "Yield","Yield30","QualityScoreSum" or "ClusterCount".
-+#' @return A ggplot2 object.
-+#' @import stringr XML RColorBrewer methods raster BiocStyle
-+#' @examples
-+#' fileLocations <- system.file("extdata",package="basecallQC")
-+#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
-+#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
-+#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
-+#' outDir <- file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/C9L0AANXX/")
-+#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),outDir,verbose=FALSE)
-+#' bclQC <- basecallQC(bcl2fastqparams,RunMetaData=NULL,sampleSheet)
-+#' plot <- passFilterTilePlot(bclQC,metricToPlot="Yield")
-+#' @export
-+passFilterTilePlot.basecallQC <- function(object,metricToPlot="Yield"){
-+  groupByS <- unique(c("Lane","Sample","Tile","Filter"))
-+  #groupByG <- unique(c(groupBy))
-+  toPlot <- object@baseCallMetrics$convStatsProcessed %>%
-+    group_by(across(all_of(groupByS))) %>%
-+    filter(Sample != "all") %>%
-+    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
-+    pivot_wider(names_from = "Filter", values_from = all_of(metricToPlot)) %>%
-+    mutate(Ff=Raw-Pf) %>%
-+    dplyr::select(-Raw) %>%
-+    as_tibble %>%
-+    pivot_longer(cols = c("Ff","Pf"), names_to = "PassFilter", values_to = metricToPlot) %>%
-+    mutate(Surface=str_sub(Tile,1,1),Box=str_sub(Tile,2,2),Pos=str_sub(Tile,3))
-+    pPf <- filter(toPlot,PassFilter=="Pf") %>%
-+    ggplot(aes(x=Box,y=Pos))+geom_tile(aes_string(fill=metricToPlot))+facet_grid(~Lane)+scale_fill_gradient2(low = "white", high = "darkblue")+theme_bw()
-+    pFf <- filter(toPlot,PassFilter=="Ff") %>%
-+    ggplot(aes(x=Box,y=Pos))+geom_tile(aes_string(fill=metricToPlot))+facet_grid(~Lane)+scale_fill_gradient2(low = "white", high = "darkblue")+theme_bw()
-+  return(list(PassFilter=pPf,FailFilter=pFf))
-+}
-+
-+setGeneric("passFilterTilePlot", function(object="basecallQC",metricToPlot="character") standardGeneric("passFilterTilePlot"))
-+
-+#' @rdname passFilterTilePlot
-+#' @export
-+setMethod("passFilterTilePlot", signature(object="basecallQC"), passFilterTilePlot.basecallQC)
-+
-+passFilterTilePlot.list <- function(object,metricToPlot="Yield"){
-+  groupByS <- unique(c("Lane","Sample","Tile","Filter"))
-+  #groupByG <- unique(c(groupBy))
-+  toPlot <- object$convStatsProcessed %>%
-+    group_by(across(all_of(groupByS))) %>%
-+    filter(Sample != "all") %>%
-+    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
-+    pivot_wider(names_from = "Filter", values_from = all_of(metricToPlot)) %>%
-+    mutate(Ff=Raw-Pf) %>%
-+    dplyr::select(-Raw) %>%
-+    as_tibble %>%
-+    pivot_longer(cols = c("Ff","Pf"), names_to = "PassFilter", values_to = metricToPlot) %>%
-+    mutate(Surface=str_sub(Tile,1,1),Box=str_sub(Tile,2,2),Pos=str_sub(Tile,3))
-+  pPf <- filter(toPlot,PassFilter=="Pf") %>%
-+    ggplot(aes(x=Box,y=Pos))+geom_tile(aes_string(fill=metricToPlot))+facet_grid(~Lane)+scale_fill_gradient2(low = "white", high = "darkblue")+theme_bw()
-+  pFf <- filter(toPlot,PassFilter=="Ff") %>%
-+    ggplot(aes(x=Box,y=Pos))+geom_tile(aes_string(fill=metricToPlot))+facet_grid(~Lane)+scale_fill_gradient2(low = "white", high = "darkblue")+theme_bw()
-+  return(list(PassFilter=pPf,FailFilter=pFf))
-+  
-+}
-+
-+#' @rdname passFilterTilePlot
-+#' @export
-+setMethod("passFilterTilePlot", signature(object="list"),passFilterTilePlot.list)
-+
-+
-+#' Boxplot of Illumina demultiplexing statistics.
-+#'
-+#' Produces a boxplot of demultiplexing statistics of reads with perfect/mismatched barcode.
-+#'
-+#' @usage
-+#' \S4method{demuxBoxplot}{baseCallQC}(object,groupBy)
-+#' @docType methods
-+#' @name demuxBoxplot
-+#' @rdname demuxBoxplot
-+#' @aliases demuxBoxplot demuxBoxplot,baseCallQC-method
-+#' @author Thomas Carroll and Marian Dore
-+#' @param object A  basecallQC object or list from call to demultiplexMetrics()
-+#' @param groupBy Character vector of how data is grouped for plotting. Should be either "Project","Sample" or "Lane".
-+#' @return A ggplot2 object.
-+#' @import stringr XML RColorBrewer methods raster BiocStyle
-+#' @examples
-+#' fileLocations <- system.file("extdata",package="basecallQC")
-+#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
-+#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
-+#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
-+#' outDir <- file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/C9L0AANXX/")
-+#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),outDir,verbose=FALSE)
-+#' bclQC <- basecallQC(bcl2fastqparams,RunMetaData=NULL,sampleSheet)
-+#' plot <- demuxBoxplot(bclQC)
-+#' @export
-+demuxBoxplot.basecallQC <- function(object,groupBy=c("Lane")){
-+  metricToPlot <- "Count"
-+  groupByS <- unique(c("Lane","Sample","Project","Barcode","BarcodeStat"))
-+  groupByG <- unique(c(groupBy))
-+
-+  toPlot <- object@demultiplexMetrics$demuxStatsProcessed %>%
-+    group_by(across(all_of(groupByS))) %>%
-+    filter(Sample != "all") %>%
-+    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
-+    pivot_wider(names_from = "BarcodeStat", values_from = all_of(metricToPlot)) %>%
-+    mutate(mismatchedBarcodeCount=BarcodeCount-PerfectBarcodeCount) %>%
-+    dplyr::select(-BarcodeCount) %>%
 +    as_tibble %>%
 +    pivot_longer(cols = c("mismatchedBarcodeCount","PerfectBarcodeCount"), names_to = "BarcodeCount", values_to = metricToPlot)
-+    p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill="BarcodeCount"))+geom_violin(scale = "width")+ coord_flip()+facet_grid(BarcodeCount~.)
-+  return(p)
-+}
-+
-+setGeneric("demuxBoxplot", function(object="basecallQC",groupBy="character") standardGeneric("demuxBoxplot"))
-+
-+#' @rdname demuxBoxplot
-+#' @export
-+setMethod("demuxBoxplot", signature(object="basecallQC"), demuxBoxplot.basecallQC)
-+
-+demuxBoxplot.list <- function(object,groupBy=c("Lane")){
-+  metricToPlot <- "Count"
-+  groupByS <- unique(c("Lane","Sample","Project","Barcode","BarcodeStat"))
-+  groupByG <- unique(c(groupBy))
-+  
-+  toPlot <- object$demuxStatsProcessed %>%
-+    group_by(across(all_of(groupByS))) %>%
-+    filter(Sample != "all") %>%
-+    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
-+    pivot_wider(names_from = "BarcodeStat", values_from = all_of(metricToPlot)) %>%
-+    mutate(mismatchedBarcodeCount=BarcodeCount-PerfectBarcodeCount) %>%
-+    dplyr::select(-BarcodeCount) %>%
-+    as_tibble %>%
-+    pivot_longer(cols = c("mismatchedBarcodeCount","PerfectBarcodeCount"), names_to = "BarcodeCount", values_to = metricToPlot)
-+  p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill="BarcodeCount"))+geom_violin(scale = "width")+ coord_flip()+facet_grid(BarcodeCount~.)
-+  return(p)
-+}
-+
-+#' @rdname demuxBoxplot
-+#' @export
-+setMethod("demuxBoxplot", signature(object="list"), demuxBoxplot.list)
-+
-+
-+
-+#' Barplot of Illumina demultiplexing statistics.
-+#'
-+#' Produces a barplot of demultiplexing statistics of reads with perfect/mismatched barcode.
-+#'
-+#' @usage
-+#' \S4method{demuxBarplot}{baseCallQC}(object,groupBy)
-+#' @docType methods
-+#' @name demuxBarplot
-+#' @rdname demuxBarplot
-+#' @aliases demuxBarplot demuxBarplot,baseCallQC-method
-+#' @author Thomas Carroll and Marian Dore
-+#' @param object A  basecallQC object or list from call to demultiplexMetrics()
-+#' @param groupBy Character vector of how data is grouped for plotting. Should be either "Project","Sample" or "Lane".
-+#' @return A ggplot2 object.
-+#' @import stringr XML RColorBrewer methods raster BiocStyle
-+#' @examples
-+#' fileLocations <- system.file("extdata",package="basecallQC")
-+#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
-+#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
-+#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
-+#' outDir <- file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/C9L0AANXX/")
-+#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),outDir,verbose=FALSE)
-+#' bclQC <- basecallQC(bcl2fastqparams,RunMetaData=NULL,sampleSheet)
-+#' plot <- demuxBarplot(bclQC)
-+#' @export
-+demuxBarplot.basecallQC <- function(object,groupBy=c("Lane")){
-+  metricToPlot <- "Count"
-+  groupByS <- unique(c("Lane","Sample","Project","Barcode","BarcodeStat"))
-+  groupByG <- unique(c(groupBy))
-+
-+  toPlot <- object@demultiplexMetrics$demuxStatsProcessed %>%
-+    group_by(across(all_of(groupByS))) %>%
-+    filter(Sample != "all") %>%
-+    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
-+    pivot_wider(names_from = "BarcodeStat", values_from = all_of(metricToPlot)) %>%
-+    mutate(mismatchedBarcodeCount=BarcodeCount-PerfectBarcodeCount) %>%
-+    dplyr::select(-BarcodeCount) %>%
-+    as_tibble %>%
-+    pivot_longer(cols = c("mismatchedBarcodeCount","PerfectBarcodeCount"), names_to = "BarcodeCount", values_to = metricToPlot)
-+  p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill=groupByG))+geom_bar(stat="identity")+ coord_flip()+facet_grid(BarcodeCount~.)
-+  return(p)
-+}
-+
-+setGeneric("demuxBarplot", function(object="basecallQC",groupBy="character") standardGeneric("demuxBarplot"))
-+
-+#' @rdname demuxBarplot
-+#' @export
-+setMethod("demuxBarplot", signature(object="basecallQC"), demuxBarplot.basecallQC)
-+
-+demuxBarplot.list <- function(object,groupBy=c("Lane")){
-+  metricToPlot <- "Count"
-+  groupByS <- unique(c("Lane","Sample","Project","Barcode","BarcodeStat"))
-+  groupByG <- unique(c(groupBy))
-+  
-+  toPlot <- object$demuxStatsProcessed %>%
-+    group_by(across(all_of(groupByS))) %>%
-+    filter(Sample != "all") %>%
-+    summarise(!!metricToPlot := sum(as.numeric(.data[[metricToPlot]])), .groups = "drop") %>%
-+    pivot_wider(names_from = "BarcodeStat", values_from = all_of(metricToPlot)) %>%
-+    mutate(mismatchedBarcodeCount=BarcodeCount-PerfectBarcodeCount) %>%
-+    dplyr::select(-BarcodeCount) %>%
-+    as_tibble %>%
-+    pivot_longer(cols = c("mismatchedBarcodeCount","PerfectBarcodeCount"), names_to = "BarcodeCount", values_to = metricToPlot)
-+  p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill=groupByG))+geom_bar(stat="identity")+ coord_flip()+facet_grid(BarcodeCount~.)
-+  return(p)
-+}
-+
-+#' @rdname demuxBarplot
-+#' @export
-+setMethod("demuxBarplot", signature(object="list"), demuxBarplot.list)
-+
-+
-   
-\ No newline at end of file
+   p <- ggplot(data=toPlot,aes_string(x=groupByG,y=metricToPlot,fill=groupByG))+geom_bar(stat="identity")+ coord_flip()+facet_grid(BarcodeCount~.)
+   return(p)
+ }
 diff --git a/R/processExternalFormats_Functions.R b/R/processExternalFormats_Functions.R
 index 21255e8..af139ed 100644
 --- a/R/processExternalFormats_Functions.R
@@ -5101,1339 +4557,110 @@ index 21255e8..af139ed 100644
  }
  
 diff --git a/R/processIlluminaSamplesheets_Functions.R b/R/processIlluminaSamplesheets_Functions.R
-index c042d22..68055d8 100644
+index c042d22..6be4d8d 100644
 --- a/R/processIlluminaSamplesheets_Functions.R
 +++ b/R/processIlluminaSamplesheets_Functions.R
-@@ -1,175 +1,175 @@
--if(getRversion() >= "2.15.1")  utils::globalVariables(c("BarcodeCount","BarcodeStat","Box","Count","ID",
--                                                        "IndexRead1","IndexRead2","Name","PassFilter",
--                                                        "PerfectBarcodeCount","Pf","Pos","Project",
--                                                        "ApplicationName","ApplicationVersion","Barcode","ChemistryVersion",
--                                                        "ClusterCount","ClusterDensity","ComputerName","Cycle","ExperimentName",
--                                                        "Flowcell","NumberOfClusters","NumberOfClustersPF","NumberOfReads",
--                                                        "NumberOfReadsPF","PhasingForRead1","PhasingForRead2","PrePhasingForRead1",
--                                                        "PrePhasingForRead2","RTAVersion","Read","Reads","RunID","RunMode","Yield30",
--                                                        "Yield30Sum","YieldSum","code","distinct","full_join","meanClusterDensity",
--                                                        "meanPhasingForRead1","meanPhasingForRead2","meanPrePhasingForRead1",
--                                                        "meanPrePhasingForRead2","percent_PF_Clusters","percent_PF_ClustersSD","q30",
--                                                        "sd","sdClusterDensity","spread","starts_with","str_replace_all","summarise_all",
--                                                        "ungroup","value","packageVersion",
--                                                        "Raw","Read1","Read2","Sample","SampleID",
--                                                        "SampleName","Sample_ID","Sample_Name",
--                                                        "Sample_Project","Tile","Yield","bcl2fastqparams",
--                                                        "index","index2","Index","Index2","Lane","basemask",
--                                                        "index1Mask","index2Mask","indexLength","indexLength2",
--                                                        "read1Mask","read2Mask","SampleRef","."))
--
--
--
--#' Illumina sample sheet cleaning and updating for
--#' bcl2Fastq versions >= 2.1.7
--#'
--#' Parses an Illumina bcl2Fastq sample sheet  to create a
--#' standardised/updated sample sheet for bcl2Fastq >= Version 2.1.7
--#'
--#'
--#' @docType methods
--#' @name validateBCLSheet
--#' @rdname validateBCLSheet
--#'
--#' @author Thomas Carroll and Marian Dore
--#' @param sampleSheet File location of a sample sheet for Illumina basecalling using bcl2Fastq (See vignette for more details).
--#' @param param A BCL2FastQparams object
--#' @return cleanedSampleSheet A data.frame containing the cleaned sample sheet for
--#'  Illumina basecalling using bcl2Fastq versions >= 2.1.7.
--#' @import stringr XML RColorBrewer methods raster BiocStyle lazyeval
--#' @examples
--#'
--#' fileLocations <- system.file("extdata",package="basecallQC")
--#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
--#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
--#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
--#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),verbose=FALSE)
--#' cleanedSampleSheet <- validateBCLSheet(sampleSheet,param=bcl2fastqparams)
--#'
--#' @export
--validateBCLSheet <- function(sampleSheet,param=bcl2fastqparams){
--  #runParam <- runParameters(param)
--  fread(sampleSheet,sep=",",header=TRUE,stringsAsFactors=FALSE,skip="Sample") %>%
+@@ -50,7 +50,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("BarcodeCount","BarcodeS
+ validateBCLSheet <- function(sampleSheet,param=bcl2fastqparams){
+   #runParam <- runParameters(param)
+   fread(sampleSheet,sep=",",header=TRUE,stringsAsFactors=FALSE,skip="Sample") %>%
 -    tbl_df %>%
--    {if(exists('Project', where = .) & !exists('Sample_Project', where = .)) dplyr::rename(.,Sample_Project = Project) else .} %>%
--    {if(exists('SampleID', where = .) & !exists('Sample_ID', where = .)) dplyr::rename(.,Sample_ID = SampleID) else .} %>%
--    {if(exists('ID', where = .) & !exists('Sample_ID', where = .)) dplyr::rename(.,Sample_ID = ID) else .} %>%
--    {if(exists('SampleName', where = .) & !exists('Sample_Name', where = .)) dplyr::rename(.,Sample_Name = SampleName) else .} %>%
--    {if(exists('Name', where = .) & !exists('Sample_Name', where = .)) dplyr::rename(.,Sample_Name = Name) else .} %>%
--    {if(exists('SampleRef', where = .) & !exists('Sample_Name', where = .)) dplyr::rename(.,Sample_Name = SampleRef) else .} %>%
--    {if(exists('index', where = .) & !exists('Index', where = .)) dplyr::rename(.,Index = index) else .} %>%
--    {if(exists('index2', where = .) & !exists('Index2', where = .)) dplyr::rename(.,Index2 = index2) else .} %>%
--    {if(!exists('Index2', where = .)) tidyr::separate(.,Index, c("Index", "Index2"), "-",fill="right") else .} %>%
--    mutate(Sample_Project = if (exists('Sample_Project', where = .)) Sample_Project else NA,
--           Lane = if (exists('Lane', where = .)) Lane else NA,
--           Sample_ID = if (exists('Sample_ID', where = .)) Sample_ID else "",
--           Sample_Name = if (exists('Sample_Name', where = .)) Sample_Name else "",
--           Index = if (exists('Index', where = .)) Index else NA,
--           Index2 = if (exists('Index2', where = .)) Index2 else NA) %>%
++    as_tibble %>%
+     {if(exists('Project', where = .) & !exists('Sample_Project', where = .)) dplyr::rename(.,Sample_Project = Project) else .} %>%
+     {if(exists('SampleID', where = .) & !exists('Sample_ID', where = .)) dplyr::rename(.,Sample_ID = SampleID) else .} %>%
+     {if(exists('ID', where = .) & !exists('Sample_ID', where = .)) dplyr::rename(.,Sample_ID = ID) else .} %>%
+@@ -66,7 +66,7 @@ validateBCLSheet <- function(sampleSheet,param=bcl2fastqparams){
+            Sample_Name = if (exists('Sample_Name', where = .)) Sample_Name else "",
+            Index = if (exists('Index', where = .)) Index else NA,
+            Index2 = if (exists('Index2', where = .)) Index2 else NA) %>%
 -    tbl_df %>%
--    dplyr::select(Sample_Project,Lane,Sample_ID,Sample_Name,Index,Index2,everything()) %>%
--    mutate(Sample_ID=replace(as.character(Sample_ID),grep("^\\d",Sample_ID),paste0("Sample_",Sample_ID[grep("^\\d",Sample_ID)]))) %>% 
--    mutate(Sample_Name=replace(as.character(Sample_Name),which(Sample_Name == "" | is.na(Sample_Name)),Sample_ID[which(Sample_Name == "" | is.na(Sample_Name))])) %>% 
--    mutate(Sample_Name=replace(as.character(Sample_Name),grep("^\\d",Sample_Name),paste0("Sample_",Sample_Name[grep("^\\d",Sample_Name)]))) %>% 
--    mutate(Sample_ID=validNames(Sample_ID,prefix="Sample_")) %>%
--    mutate(Sample_Name=validNames(Sample_Name,prefix="Sample_")) %>%
--    mutate(Index2=replace(as.character(Index2),is.na(Index2),"")) %>% 
--    mutate(Index=str_to_upper(Index)) %>%
--    mutate(Index2=str_to_upper(Index2)) %>%
--    mutate(Sample_ID=gsub("\\?|\\(|\\)|\\[|\\]|\\\\|/|\\=|\\+|<|>|\\:|\\;|\"|\'|\\*|\\^|\\||\\&|\\.","_",Sample_ID)) %>%
--    mutate(Sample_Name=gsub("\\?|\\(|\\)|\\[|\\]|\\\\|/|\\=|\\+|<|>|\\:|\\;|\"|\'|\\*|\\^|\\||\\&|\\.","_",Sample_Name)) %>%
--    mutate(Index=str_trim(Index,"both"),
--           Index2=str_trim(Index2,"both"))    %>%
--    mutate(Index=str_sub(Index,1,as.numeric(indexlengths(param)$IndexRead1)),    
--           Index2=str_sub(Index2,1,as.numeric(indexlengths(param)$IndexRead2)))
--}
--
--#' Function to create basemasks for basecalling from Illumina samplesheet (for bcl2Fastq versions >= 2.1.7).
--#'
--#' Parses the Illumina sample sheet for versions >= 2.1.7 and creates basemasks.
--#'
--#'
--#' @docType methods
--#' @name createBasemasks
--#' @rdname createBasemasks
--#'
--#' @author Thomas Carroll and Marian Dore
--#' @param cleanedSampleSheet Data.frame of cleaned samplesheet for Illumina basecalling using bcl2Fastq versions >= 2.1.7 (see vignette for more details)
--#' @param param A BCL2FastQparams object
--#' @return A data.frame containing basecall masks per lane for reads and indexes as well as per lane complete basemasks.
--#' @import stringr XML RColorBrewer methods raster BiocStyle
--#' @examples
--#'
--
--#' fileLocations <- system.file("extdata",package="basecallQC")
--#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
--#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
--#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
--#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),verbose=FALSE)
--#'
--#' cleanedSampleSheet <- validateBCLSheet(sampleSheet,param=bcl2fastqparams)
--#' basemasks <- createBasemasks(cleanedSampleSheet,param=bcl2fastqparams)
--#'
--#' @export
--createBasemasks <- function(cleanedSampleSheet,param){
--  indexCombinations <- cleanedSampleSheet %>%
--    mutate(Index2=ifelse(is.na(Index2), "", Index2),Index=ifelse(is.na(Index), "", Index)) %>%
--    mutate(indexLength=str_length(Index),indexLength2=str_length(Index2)) %>%
--    dplyr::group_by(Lane) %>% dplyr::count(indexLength,indexLength2)
--
--  if(nrow(indexCombinations) == length(unique(indexCombinations$Lane))){
--    baseMasks <- indexCombinations %>%
--      mutate(index1Mask = str_c(str_dup("I",indexLength),
--                                str_dup("N",indexlengths(param)$IndexRead1-indexLength)),
--             index2Mask = str_c(str_dup("I",indexLength2),
--                                str_dup("N",indexlengths(param)$IndexRead2-indexLength2))) %>%
--      mutate(read1Mask = str_c(str_dup("Y",as.numeric(readlengths(param)$Read1))),
--             read2Mask = str_c(str_dup("Y",as.numeric(readlengths(param)$Read2)))) %>%
--      mutate(read1Mask = str_replace(read1Mask,"Y$","N"),
--             read2Mask = str_replace(read2Mask,"Y$","N")) %>%
--      mutate(basemask = str_c(read1Mask,index1Mask,index2Mask,read2Mask,sep=",")) %>%
--      mutate(basemask = str_c(Lane,":",basemask)) %>%
--      mutate(basemask = str_replace(basemask,",,",",")) %>%
--      mutate(basemask = str_replace(basemask,",$","")) %>%
++    as_tibble %>%
+     dplyr::select(Sample_Project,Lane,Sample_ID,Sample_Name,Index,Index2,everything()) %>%
+     mutate(Sample_ID=replace(as.character(Sample_ID),grep("^\\d",Sample_ID),paste0("Sample_",Sample_ID[grep("^\\d",Sample_ID)]))) %>% 
+     mutate(Sample_Name=replace(as.character(Sample_Name),which(Sample_Name == "" | is.na(Sample_Name)),Sample_ID[which(Sample_Name == "" | is.na(Sample_Name))])) %>% 
+@@ -131,7 +131,7 @@ createBasemasks <- function(cleanedSampleSheet,param){
+       mutate(basemask = str_c(Lane,":",basemask)) %>%
+       mutate(basemask = str_replace(basemask,",,",",")) %>%
+       mutate(basemask = str_replace(basemask,",$","")) %>%
 -      tbl_df %>%
--      dplyr::select(Lane,basemask,read1Mask,index1Mask,index2Mask,read2Mask)
--      }
--}
--
--#' Function to create command for Illumina basecalling/demultiplexing using bcl2fastq versions >= 2.1.7.
--#'
--#' Creates the command to be used for basecalling/demultiplexing with bcl2fastq versions >= 2.1.7
--#'
--#'
--#' @docType methods
--#' @name createBCLcommand
--#' @rdname createBCLcommand
--#'
--#' @author Thomas Carroll and Marian Dore
--#' @param bcl2fastqparams A BCL2FastQparams object.
--#' @param cleanedSampleSheet Data.frame of cleaned samplesheet for Illumina basecalling/demultiplexing using bcl2fastq versions >= 2.1.7 (see vignette for more details)
--#' @param baseMasks A data.frame of basemasks as created by createBasemasks() function
--#' @return A character vector containing the command for Illumina basecalling using bcl2fastq versions >= 2.1.7
--#' @import stringr XML RColorBrewer methods raster BiocStyle
--#' @examples
--#'
--
--#' fileLocations <- system.file("extdata",package="basecallQC")
--#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
--#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
--#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
--#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),verbose=FALSE)
--#'
--#' cleanedSampleSheet <- validateBCLSheet(sampleSheet,param=bcl2fastqparams)
--#' baseMasks <- createBasemasks(cleanedSampleSheet,param=bcl2fastqparams)
--#' toSubmit <- createBCLcommand(bcl2fastqparams,cleanedSampleSheet,baseMasks)
--#' @export
--createBCLcommand <- function(bcl2fastqparams,cleanedSampleSheet,baseMasks){
--  sampleSheetLocation <- paste0(file.path(bcl2fastqparams@RunDir,bcl2fastqparams@RunParameters$runParams$Barcode),".csv")
--  bclPath <- bcl2fastqparams@RunParameters$configParams[bcl2fastqparams@RunParameters$configParams$name == "configureBclToFastq","value"]
--  write.table("[DATA]",file=sampleSheetLocation,sep="",quote=FALSE,row.names=FALSE)
--  write.table(cleanedSampleSheet,file=sampleSheetLocation,sep=",",quote=FALSE,row.names=FALSE,append = TRUE)
--  baseMasksToUse <- str_c("--use-bases-mask ",dplyr::select(tbl_df(baseMasks),basemask)$basemask,collapse = " ")
--  bclcommand <- str_c(as.vector(bclPath$value),"--output-dir ",bcl2fastqparams@OutDir,"--sample-sheet",sampleSheetLocation,baseMasksToUse,sep=" ")
--  return(bclcommand)
--}
-+if(getRversion() >= "2.15.1")  utils::globalVariables(c("BarcodeCount","BarcodeStat","Box","Count","ID",
-+                                                        "IndexRead1","IndexRead2","Name","PassFilter",
-+                                                        "PerfectBarcodeCount","Pf","Pos","Project",
-+                                                        "ApplicationName","ApplicationVersion","Barcode","ChemistryVersion",
-+                                                        "ClusterCount","ClusterDensity","ComputerName","Cycle","ExperimentName",
-+                                                        "Flowcell","NumberOfClusters","NumberOfClustersPF","NumberOfReads",
-+                                                        "NumberOfReadsPF","PhasingForRead1","PhasingForRead2","PrePhasingForRead1",
-+                                                        "PrePhasingForRead2","RTAVersion","Read","Reads","RunID","RunMode","Yield30",
-+                                                        "Yield30Sum","YieldSum","code","distinct","full_join","meanClusterDensity",
-+                                                        "meanPhasingForRead1","meanPhasingForRead2","meanPrePhasingForRead1",
-+                                                        "meanPrePhasingForRead2","percent_PF_Clusters","percent_PF_ClustersSD","q30",
-+                                                        "sd","sdClusterDensity","spread","starts_with","str_replace_all","summarise_all",
-+                                                        "ungroup","value","packageVersion",
-+                                                        "Raw","Read1","Read2","Sample","SampleID",
-+                                                        "SampleName","Sample_ID","Sample_Name",
-+                                                        "Sample_Project","Tile","Yield","bcl2fastqparams",
-+                                                        "index","index2","Index","Index2","Lane","basemask",
-+                                                        "index1Mask","index2Mask","indexLength","indexLength2",
-+                                                        "read1Mask","read2Mask","SampleRef","."))
-+
-+
-+
-+#' Illumina sample sheet cleaning and updating for
-+#' bcl2Fastq versions >= 2.1.7
-+#'
-+#' Parses an Illumina bcl2Fastq sample sheet  to create a
-+#' standardised/updated sample sheet for bcl2Fastq >= Version 2.1.7
-+#'
-+#'
-+#' @docType methods
-+#' @name validateBCLSheet
-+#' @rdname validateBCLSheet
-+#'
-+#' @author Thomas Carroll and Marian Dore
-+#' @param sampleSheet File location of a sample sheet for Illumina basecalling using bcl2Fastq (See vignette for more details).
-+#' @param param A BCL2FastQparams object
-+#' @return cleanedSampleSheet A data.frame containing the cleaned sample sheet for
-+#'  Illumina basecalling using bcl2Fastq versions >= 2.1.7.
-+#' @import stringr XML RColorBrewer methods raster BiocStyle lazyeval
-+#' @examples
-+#'
-+#' fileLocations <- system.file("extdata",package="basecallQC")
-+#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
-+#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
-+#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
-+#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),verbose=FALSE)
-+#' cleanedSampleSheet <- validateBCLSheet(sampleSheet,param=bcl2fastqparams)
-+#'
-+#' @export
-+validateBCLSheet <- function(sampleSheet,param=bcl2fastqparams){
-+  #runParam <- runParameters(param)
-+  fread(sampleSheet,sep=",",header=TRUE,stringsAsFactors=FALSE,skip="Sample") %>%
-+    as_tibble %>%
-+    {if(exists('Project', where = .) & !exists('Sample_Project', where = .)) dplyr::rename(.,Sample_Project = Project) else .} %>%
-+    {if(exists('SampleID', where = .) & !exists('Sample_ID', where = .)) dplyr::rename(.,Sample_ID = SampleID) else .} %>%
-+    {if(exists('ID', where = .) & !exists('Sample_ID', where = .)) dplyr::rename(.,Sample_ID = ID) else .} %>%
-+    {if(exists('SampleName', where = .) & !exists('Sample_Name', where = .)) dplyr::rename(.,Sample_Name = SampleName) else .} %>%
-+    {if(exists('Name', where = .) & !exists('Sample_Name', where = .)) dplyr::rename(.,Sample_Name = Name) else .} %>%
-+    {if(exists('SampleRef', where = .) & !exists('Sample_Name', where = .)) dplyr::rename(.,Sample_Name = SampleRef) else .} %>%
-+    {if(exists('index', where = .) & !exists('Index', where = .)) dplyr::rename(.,Index = index) else .} %>%
-+    {if(exists('index2', where = .) & !exists('Index2', where = .)) dplyr::rename(.,Index2 = index2) else .} %>%
-+    {if(!exists('Index2', where = .)) tidyr::separate(.,Index, c("Index", "Index2"), "-",fill="right") else .} %>%
-+    mutate(Sample_Project = if (exists('Sample_Project', where = .)) Sample_Project else NA,
-+           Lane = if (exists('Lane', where = .)) Lane else NA,
-+           Sample_ID = if (exists('Sample_ID', where = .)) Sample_ID else "",
-+           Sample_Name = if (exists('Sample_Name', where = .)) Sample_Name else "",
-+           Index = if (exists('Index', where = .)) Index else NA,
-+           Index2 = if (exists('Index2', where = .)) Index2 else NA) %>%
-+    as_tibble %>%
-+    dplyr::select(Sample_Project,Lane,Sample_ID,Sample_Name,Index,Index2,everything()) %>%
-+    mutate(Sample_ID=replace(as.character(Sample_ID),grep("^\\d",Sample_ID),paste0("Sample_",Sample_ID[grep("^\\d",Sample_ID)]))) %>% 
-+    mutate(Sample_Name=replace(as.character(Sample_Name),which(Sample_Name == "" | is.na(Sample_Name)),Sample_ID[which(Sample_Name == "" | is.na(Sample_Name))])) %>% 
-+    mutate(Sample_Name=replace(as.character(Sample_Name),grep("^\\d",Sample_Name),paste0("Sample_",Sample_Name[grep("^\\d",Sample_Name)]))) %>% 
-+    mutate(Sample_ID=validNames(Sample_ID,prefix="Sample_")) %>%
-+    mutate(Sample_Name=validNames(Sample_Name,prefix="Sample_")) %>%
-+    mutate(Index2=replace(as.character(Index2),is.na(Index2),"")) %>% 
-+    mutate(Index=str_to_upper(Index)) %>%
-+    mutate(Index2=str_to_upper(Index2)) %>%
-+    mutate(Sample_ID=gsub("\\?|\\(|\\)|\\[|\\]|\\\\|/|\\=|\\+|<|>|\\:|\\;|\"|\'|\\*|\\^|\\||\\&|\\.","_",Sample_ID)) %>%
-+    mutate(Sample_Name=gsub("\\?|\\(|\\)|\\[|\\]|\\\\|/|\\=|\\+|<|>|\\:|\\;|\"|\'|\\*|\\^|\\||\\&|\\.","_",Sample_Name)) %>%
-+    mutate(Index=str_trim(Index,"both"),
-+           Index2=str_trim(Index2,"both"))    %>%
-+    mutate(Index=str_sub(Index,1,as.numeric(indexlengths(param)$IndexRead1)),    
-+           Index2=str_sub(Index2,1,as.numeric(indexlengths(param)$IndexRead2)))
-+}
-+
-+#' Function to create basemasks for basecalling from Illumina samplesheet (for bcl2Fastq versions >= 2.1.7).
-+#'
-+#' Parses the Illumina sample sheet for versions >= 2.1.7 and creates basemasks.
-+#'
-+#'
-+#' @docType methods
-+#' @name createBasemasks
-+#' @rdname createBasemasks
-+#'
-+#' @author Thomas Carroll and Marian Dore
-+#' @param cleanedSampleSheet Data.frame of cleaned samplesheet for Illumina basecalling using bcl2Fastq versions >= 2.1.7 (see vignette for more details)
-+#' @param param A BCL2FastQparams object
-+#' @return A data.frame containing basecall masks per lane for reads and indexes as well as per lane complete basemasks.
-+#' @import stringr XML RColorBrewer methods raster BiocStyle
-+#' @examples
-+#'
-+
-+#' fileLocations <- system.file("extdata",package="basecallQC")
-+#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
-+#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
-+#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
-+#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),verbose=FALSE)
-+#'
-+#' cleanedSampleSheet <- validateBCLSheet(sampleSheet,param=bcl2fastqparams)
-+#' basemasks <- createBasemasks(cleanedSampleSheet,param=bcl2fastqparams)
-+#'
-+#' @export
-+createBasemasks <- function(cleanedSampleSheet,param){
-+  indexCombinations <- cleanedSampleSheet %>%
-+    mutate(Index2=ifelse(is.na(Index2), "", Index2),Index=ifelse(is.na(Index), "", Index)) %>%
-+    mutate(indexLength=str_length(Index),indexLength2=str_length(Index2)) %>%
-+    dplyr::group_by(Lane) %>% dplyr::count(indexLength,indexLength2)
-+
-+  if(nrow(indexCombinations) == length(unique(indexCombinations$Lane))){
-+    baseMasks <- indexCombinations %>%
-+      mutate(index1Mask = str_c(str_dup("I",indexLength),
-+                                str_dup("N",indexlengths(param)$IndexRead1-indexLength)),
-+             index2Mask = str_c(str_dup("I",indexLength2),
-+                                str_dup("N",indexlengths(param)$IndexRead2-indexLength2))) %>%
-+      mutate(read1Mask = str_c(str_dup("Y",as.numeric(readlengths(param)$Read1))),
-+             read2Mask = str_c(str_dup("Y",as.numeric(readlengths(param)$Read2)))) %>%
-+      mutate(read1Mask = str_replace(read1Mask,"Y$","N"),
-+             read2Mask = str_replace(read2Mask,"Y$","N")) %>%
-+      mutate(basemask = str_c(read1Mask,index1Mask,index2Mask,read2Mask,sep=",")) %>%
-+      mutate(basemask = str_c(Lane,":",basemask)) %>%
-+      mutate(basemask = str_replace(basemask,",,",",")) %>%
-+      mutate(basemask = str_replace(basemask,",$","")) %>%
 +      as_tibble %>%
-+      dplyr::select(Lane,basemask,read1Mask,index1Mask,index2Mask,read2Mask)
-+      }
-+}
-+
-+#' Function to create command for Illumina basecalling/demultiplexing using bcl2fastq versions >= 2.1.7.
-+#'
-+#' Creates the command to be used for basecalling/demultiplexing with bcl2fastq versions >= 2.1.7
-+#'
-+#'
-+#' @docType methods
-+#' @name createBCLcommand
-+#' @rdname createBCLcommand
-+#'
-+#' @author Thomas Carroll and Marian Dore
-+#' @param bcl2fastqparams A BCL2FastQparams object.
-+#' @param cleanedSampleSheet Data.frame of cleaned samplesheet for Illumina basecalling/demultiplexing using bcl2fastq versions >= 2.1.7 (see vignette for more details)
-+#' @param baseMasks A data.frame of basemasks as created by createBasemasks() function
-+#' @return A character vector containing the command for Illumina basecalling using bcl2fastq versions >= 2.1.7
-+#' @import stringr XML RColorBrewer methods raster BiocStyle
-+#' @examples
-+#'
-+
-+#' fileLocations <- system.file("extdata",package="basecallQC")
-+#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
-+#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
-+#' sampleSheet <- dir(fileLocations,pattern="*\\.csv",full.names=TRUE)
-+#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),verbose=FALSE)
-+#'
-+#' cleanedSampleSheet <- validateBCLSheet(sampleSheet,param=bcl2fastqparams)
-+#' baseMasks <- createBasemasks(cleanedSampleSheet,param=bcl2fastqparams)
-+#' toSubmit <- createBCLcommand(bcl2fastqparams,cleanedSampleSheet,baseMasks)
-+#' @export
-+createBCLcommand <- function(bcl2fastqparams,cleanedSampleSheet,baseMasks){
-+  sampleSheetLocation <- paste0(file.path(bcl2fastqparams@RunDir,bcl2fastqparams@RunParameters$runParams$Barcode),".csv")
-+  bclPath <- bcl2fastqparams@RunParameters$configParams[bcl2fastqparams@RunParameters$configParams$name == "configureBclToFastq","value"]
-+  write.table("[DATA]",file=sampleSheetLocation,sep="",quote=FALSE,row.names=FALSE)
-+  write.table(cleanedSampleSheet,file=sampleSheetLocation,sep=",",quote=FALSE,row.names=FALSE,append = TRUE)
+       dplyr::select(Lane,basemask,read1Mask,index1Mask,index2Mask,read2Mask)
+       }
+ }
+@@ -169,7 +169,7 @@ createBCLcommand <- function(bcl2fastqparams,cleanedSampleSheet,baseMasks){
+   bclPath <- bcl2fastqparams@RunParameters$configParams[bcl2fastqparams@RunParameters$configParams$name == "configureBclToFastq","value"]
+   write.table("[DATA]",file=sampleSheetLocation,sep="",quote=FALSE,row.names=FALSE)
+   write.table(cleanedSampleSheet,file=sampleSheetLocation,sep=",",quote=FALSE,row.names=FALSE,append = TRUE)
+-  baseMasksToUse <- str_c("--use-bases-mask ",dplyr::select(tbl_df(baseMasks),basemask)$basemask,collapse = " ")
 +  baseMasksToUse <- str_c("--use-bases-mask ",dplyr::select(as_tibble(baseMasks),basemask)$basemask,collapse = " ")
-+  bclcommand <- str_c(as.vector(bclPath$value),"--output-dir ",bcl2fastqparams@OutDir,"--sample-sheet",sampleSheetLocation,baseMasksToUse,sep=" ")
-+  return(bclcommand)
-+}
+   bclcommand <- str_c(as.vector(bclPath$value),"--output-dir ",bcl2fastqparams@OutDir,"--sample-sheet",sampleSheetLocation,baseMasksToUse,sep=" ")
+   return(bclcommand)
+ }
 diff --git a/R/processInterOps_Functions.R b/R/processInterOps_Functions.R
-index 76fe4d7..a3566e4 100644
+index 76fe4d7..a847cba 100644
 --- a/R/processInterOps_Functions.R
 +++ b/R/processInterOps_Functions.R
-@@ -1,487 +1,487 @@
--readPattern <- function(bcl2fastqparams){
--  c(readlengths(bcl2fastqparams)[1],indexlengths(bcl2fastqparams)[1],
--    indexlengths(bcl2fastqparams)[2],readlengths(bcl2fastqparams)[2])
--}
--readBCLStatFile <- function(read.filename){
--  read.filename <- file(read.filename, "rb")
--  clusterNumber <- readBin(read.filename,"int",size=4,n = 1)
--  ACI <- readBin(read.filename,"double",size=8,n = 1)
--  AIAOverAIAA <- readBin(read.filename,"double",size=8,n = 1)
--  AICOverAICA <- readBin(read.filename,"double",size=8,n = 1)
--  AIGOverAIGA <- readBin(read.filename,"double",size=8,n = 1)
--  AITOverAITA <- readBin(read.filename,"double",size=8,n = 1)
--  AIAOverA <- readBin(read.filename,"double",size=8,n = 1)
--  AICOverC <- readBin(read.filename,"double",size=8,n = 1)
--  AIGOverG <- readBin(read.filename,"double",size=8,n = 1)
--  AITOverT <- readBin(read.filename,"double",size=8,n = 1)
--  NCA <- readBin(read.filename,"int",size=4,n = 1)
--  NCC <- readBin(read.filename,"int",size=4,n = 1)
--  NCG <- readBin(read.filename,"int",size=4,n = 1)
--  NCT <- readBin(read.filename,"int",size=4,n = 1)
--  NCX <- readBin(read.filename,"int",size=4,n = 1)
--  NCIA <- readBin(read.filename,"int",size=4,n = 1)
--  NCIC <- readBin(read.filename,"int",size=4,n = 1)
--  NCIG <- readBin(read.filename,"int",size=4,n = 1)
--  NCIT <- readBin(read.filename,"int",size=4,n = 1)
--  
--  
--  bclClusterTileStats <- c(clusterNumber,ACI,AIAOverAIAA,AICOverAICA,AIGOverAIGA,
--                           AITOverAITA,AIAOverA,AICOverC,AIGOverG,
--                           AITOverT,NCA,NCC,NCG,NCT,NCX,NCIA,NCIC,NCIG,NCIT)
--  close(read.filename)
--  return(bclClusterTileStats)
--}
--readBCLStatFiles <- function(read.filenames){
--  bclStatList <- lapply(read.filenames,readBCLStatFile)
--  bclStatMat <- do.call(rbind,bclStatList)
--}
--readExtractionMetrics <- function(extractionMetricsBin){
--  bytesOfFile <- file.info(extractionMetricsBin)$size
--  read.filename <- file(extractionMetricsBin, "rb")
--  bytesRead <- 0
--  k <- 1
--  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
--  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
--  bytesRead <- bytesRead+1+1
--  extractionMetricsOut <- list()
--  while(bytesRead < bytesOfFile){
--    laneNumber <- readBin(read.filename,"int",size=2,n = 1)
--    tileNumber <- readBin(read.filename,"int",size=2,n = 1)
--    cycleNumber <- readBin(read.filename,"int",size=2,n = 1)
--    focusForChannelA <- readBin(read.filename,"double",size=4,n = 1)
--    focusForChannelC <- readBin(read.filename,"double",size=4,n = 1)
--    focusForChannelG <- readBin(read.filename,"double",size=4,n = 1)
--    focusForChannelT <- readBin(read.filename,"double",size=4,n = 1)
--    maxIntensityForChannelA <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
--    maxIntensityForChannelC <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
--    maxIntensityForChannelG <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
--    maxIntensityForChannelT <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
--    timeStamp <- readBin(read.filename,"int",size=8,n = 1)
--    bytesRead <- bytesRead+(2*3)+(4*4)+(2*4)+8
--    extractionMetricsOut[[k]] <- c(
--      laneNumber,tileNumber,cycleNumber,
--      focusForChannelA,focusForChannelC,
--      focusForChannelG,focusForChannelT,
--      maxIntensityForChannelA,maxIntensityForChannelC,
--      maxIntensityForChannelG,maxIntensityForChannelT,
--      timeStamp
--    )
--    k <- k+1
--  }
--  extractionMetricsOutMat <- do.call(rbind,extractionMetricsOut)
--  colnames(extractionMetricsOutMat) <-  c(
--    "laneNumber","tileNumber","cycleNumber",
--    "focusForChannelA","focusForChannelC",
--    "focusForChannelG","focusForChannelT",
--    "maxIntensityForChannelA","maxIntensityForChannelC",
--    "maxIntensityForChannelG","maxIntensityForChannelT",
--    "timeStamp"
--  )
--  close(read.filename)
+@@ -78,7 +78,7 @@ readExtractionMetrics <- function(extractionMetricsBin){
+     "timeStamp"
+   )
+   close(read.filename)
 -  extractionMetricsOutMat <- tbl_df(extractionMetricsOutMat)
--}
--readIndexMetrics <- function(indexMetricsBin){
--  bytesOfFile <- file.info(indexMetricsBin)$size
--  indexMetricsBin <- file(indexMetricsBin, "rb")
--  
--  bytesRead <- 0
--  versionNumber <- readBin(indexMetricsBin,"int",size=1,n = 1)
--  bytesRead <- bytesRead+1
--  k <- 1
--  IndexMetricsOut <- list()
--  while(bytesRead < bytesOfFile){
--    laneNumber <- readBin(indexMetricsBin,"int",size=2,n = 1)
--    tileNumber <- readBin(indexMetricsBin,"int",size=2,n = 1)
--    readNumber <- readBin(indexMetricsBin,"int",size=2,n = 1)
--    indexNameLength <- readBin(indexMetricsBin,"int",size=2,n = 1)
--    indexName <- rawToChar(readBin(indexMetricsBin,"raw",n=indexNameLength))
--    identifiedAsIndex <- readBin(indexMetricsBin,"int",size=4,n = 1)
--    sampleNameLength <- readBin(indexMetricsBin,"int",size=2,n = 1)
--    sampleName <- rawToChar(readBin(indexMetricsBin,"raw",n=sampleNameLength))
--    projectNameLength <- readBin(indexMetricsBin,"int",size=2,n = 1)
--    projectName <- rawToChar(readBin(indexMetricsBin,"raw",n=projectNameLength))
--    bytesRead <- bytesRead + 2+2+2+2+indexNameLength+4+2+sampleNameLength+2+projectNameLength
--    IndexMetricsOut[[k]] <- c(
--      laneNumber,tileNumber,readNumber,indexName,identifiedAsIndex,sampleName, projectName
--    )
--    k  <- k+1
--  }
--  close(indexMetricsBin)
--  IndexMetricsFrame <- do.call(rbind,IndexMetricsOut)
--  colnames(IndexMetricsFrame) <- c(
--    "laneNumber","tileNumber","readNumber","indexName","identifiedAsIndex","sampleName","projectName"
--  )
--  tbl_df(IndexMetricsFrame)
--}
--readQMetrics <- function(qMetricsBin){
--  bytesOfFile <- file.info(qMetricsBin)$size
--  read.filename <- file(qMetricsBin, "rb")
--  bytesRead <- 0
--  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
--  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
--  hasBins <- readBin(read.filename,"logical",size=1,n = 1)
--  numberOfBins <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
--  lowEndsOfBins <- readBin(read.filename,"int",size=1,n = numberOfBins,signed = FALSE)
--  highEndsOfBins <- readBin(read.filename,"int",size=1,n = numberOfBins,signed = FALSE)
--  valueOfBins <- readBin(read.filename,"int",size=1,n = numberOfBins,signed = FALSE)
--  bytesRead <- bytesRead+1+1+1+1+numberOfBins*3
--  k <- 1
--  qMetricsOut <- list()
--  while(bytesRead < bytesOfFile){
--    Lane <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
--    Tile <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
--    Cycle <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
--    qhist <- readBin(read.filename,"integer",size=4,n = 50)
--    qMetricsOut[[k]] <-
--      c(Lane,Tile,Cycle,qhist)
--    bytesRead <- bytesRead+2+2+2+4*50
--    k <- k+1
--  }
--  
--  close(read.filename)
--  qMetricsFrame <- do.call(rbind,qMetricsOut)
--  colnames(qMetricsFrame) <- c("Lane","Tile","Cycle",paste0("Q",1:50))
--  tbl_df(qMetricsFrame)
--}
--readCorrectedIntMetrics <- function(correctedIntMetricsBin){
--  bytesOfFile <- file.info(correctedIntMetricsBin)$size
--  read.filename <- file(correctedIntMetricsBin, "rb")
--  bytesRead <- 0
--  k <- 1
--  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
--  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
--  bytesRead <- bytesRead+1+1
--  correctedIntMetricsOut <- list()
--  while(bytesRead < bytesOfFile){
--    laneNumber <- readBin(read.filename,"int",size=2,n = 1)
--    tileNumber <- readBin(read.filename,"int",size=2,n = 1)
--    cycleNumber <- readBin(read.filename,"int",size=2,n = 1)
--    averageCycleIntensity <- readBin(read.filename,"int",size=2,n = 1)
--    averageCorrectedIntensityForChannelA <- readBin(read.filename,"int",size=2,n = 1)
--    averageCorrectedIntensityForChannelC <- readBin(read.filename,"int",size=2,n = 1)
--    averageCorrectedIntensityForChannelG <- readBin(read.filename,"int",size=2,n = 1)
--    averageCorrectedIntensityForChannelT <- readBin(read.filename,"int",size=2,n = 1)
--    averageCorrectedIntForCalledClustersForBaseA <- readBin(read.filename,"int",size=2,n = 1)
--    averageCorrectedIntForCalledClustersForBaseC <- readBin(read.filename,"int",size=2,n = 1)
--    averageCorrectedIntForCalledClustersForBaseG <- readBin(read.filename,"int",size=2,n = 1)
--    averageCorrectedIntForCalledClustersForBaseT <- readBin(read.filename,"int",size=2,n = 1)
--    numberOfBaseCallsForNoCall  <- readBin(read.filename,"int",size=4,n = 1)
--    numberOfBaseCallsForBaseA  <- readBin(read.filename,"int",size=4,n = 1)
--    numberOfBaseCallsForBaseC  <- readBin(read.filename,"int",size=4,n = 1)
--    numberOfBaseCallsForBaseG  <- readBin(read.filename,"int",size=4,n = 1)
--    numberOfBaseCallsForBaseT  <- readBin(read.filename,"int",size=4,n = 1)
--    signalToNoiseRatio   <- readBin(read.filename,"double",size=4,n = 1)
--    bytesRead <- bytesRead+(2*3)+(2*9)+(4*5)+4
--    correctedIntMetricsOut[[k]] <- c(laneNumber,tileNumber,cycleNumber,averageCycleIntensity,
--                                     averageCorrectedIntensityForChannelA,averageCorrectedIntensityForChannelC,
--                                     averageCorrectedIntensityForChannelG,averageCorrectedIntensityForChannelT,
--                                     averageCorrectedIntForCalledClustersForBaseA,averageCorrectedIntForCalledClustersForBaseC,
--                                     averageCorrectedIntForCalledClustersForBaseG,averageCorrectedIntForCalledClustersForBaseT,
--                                     numberOfBaseCallsForNoCall,
--                                     numberOfBaseCallsForBaseA,numberOfBaseCallsForBaseC,
--                                     numberOfBaseCallsForBaseG,numberOfBaseCallsForBaseT)
--    k <- k+1
--  }
--  close(read.filename)
--  correctedIntMetricsMat <- do.call(rbind,correctedIntMetricsOut)
--}
--readImageMetrics <- function(imageMetricsBin){
--  bytesOfFile <- file.info(imageMetricsBin)$size
--  read.filename <- file(imageMetricsBin, "rb")
--  bytesRead <- 0
--  k <- 1
--  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
--  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
--  bytesRead <- bytesRead+1+1
--  imageMetricsOut <- list()
--  while(bytesRead < bytesOfFile){
--    laneNumber <- readBin(read.filename,"int",size=2,n = 1)
--    tileNumber <- readBin(read.filename,"int",size=2,n = 1)
--    cycleNumber <- readBin(read.filename,"int",size=2,n = 1)
--    channelNumber <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
--    minimumContrast <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
--    maximumContrast <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
--    bytesRead <- bytesRead+(2*3)+(2*3)
--    imageMetricsOut[[k]] <- c(laneNumber,tileNumber,cycleNumber,
--                              channelNumber,minimumContrast,maximumContrast)
--    k <- k+1
--  }
--  close(read.filename)
--  imageMetricsMat <- do.call(rbind,imageMetricsOut)
--}
--readTileMetrics <- function(tileMetricsBin){
--  bytesOfFile <- file.info(tileMetricsBin)$size
--  read.filename <- file(tileMetricsBin, "rb")
--  bytesRead <- 0
--  k <- 1
--  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
--  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
--  bytesRead <- bytesRead+1+1
--  tileMetricsOut <- list()
--  while(bytesRead < bytesOfFile){
--    laneNumber <- readBin(read.filename,"int",size=2,n = 1)
--    tileNumber <- readBin(read.filename,"int",size=2,n = 1)
--    codeTile <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
--    valueTile <- readBin(read.filename,"double",size=4,n = 1)
--    bytesRead <- bytesRead+(2*2)+2+4
--    tileMetricsOut[[k]] <- c(laneNumber,tileNumber,
--                             codeTile,valueTile)
--    k <- k+1
--  }
--  close(read.filename)
--  tileMetricsMat <- do.call(rbind,tileMetricsOut)
--  colnames(tileMetricsMat) <-  c(
--    "laneNumber","tileNumber",
--    "code","value"
--  )
--  tbl_df(tileMetricsMat) %>%
--    mutate(code = str_c("c",code)) %>%
--    group_by(laneNumber,tileNumber,code) %>%
--    summarise_all(max) %>%
--    ungroup() %>%
--    mutate(Lane=laneNumber,Tile=tileNumber) %>% 
--    mutate(code=stringr::str_replace_all(code,"c100","ClusterDensity")) %>% 
--    mutate(code=stringr::str_replace_all(code,"c101","ClusterDensityPF")) %>% 
--    mutate(code=stringr::str_replace_all(code,"c102","NumberOfClusters")) %>%        
--    mutate(code=stringr::str_replace_all(code,"c103","NumberOfClustersPF")) %>%                       
--    mutate(code=stringr::str_replace_all(code,"c200",
--                                         paste0("PhasingFor",
--                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][1]))) %>% 
--    mutate(code=stringr::str_replace_all(code,"c201",
--                                         paste0("PrePhasingFor",
--                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][1]))) %>%    
--    mutate(code=stringr::str_replace_all(code,"c202",
--                                         paste0("PhasingFor",
--                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][2]))) %>% 
--    mutate(code=stringr::str_replace_all(code,"c203",
--                                         paste0("PrePhasingFor",
--                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][2]))) %>%
--    mutate(code=stringr::str_replace_all(code,"c204",
--                                         paste0("PhasingFor",
--                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][3]))) %>% 
--    mutate(code=stringr::str_replace_all(code,"c205",
--                                         paste0("PrePhasingFor",
--                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][3]))) %>% 
--    mutate(code=stringr::str_replace_all(code,"c206",
--                                         paste0("PhasingFor",
--                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][4]))) %>% 
--    mutate(code=stringr::str_replace_all(code,"c207",
--                                         paste0("PrePhasingFor",
--                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][4]))) %>%
--    filter(code!="PrePhasingForNA" & code!="PhasingForNA" ) %>% 
--    spread(code,value) %>%
--    dplyr::select(-laneNumber,-tileNumber,
--                          -starts_with("c",ignore.case = FALSE))
--}
--readPhasingMetrics <- function(phasingMetricsBin){
--  bytesOfFile <- file.info(phasingMetricsBin)$size
--  read.filename <- file(phasingMetricsBin, "rb")
--  bytesRead <- 0
--  k <- 1
--  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
--  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
--  bytesRead <- bytesRead+1+1
--  phasingMetricsOut <- list()
--  while(bytesRead < bytesOfFile){
--    laneNumber <- readBin(read.filename,"int",size=2,n = 1)
--    tileNumber <- readBin(read.filename,"int",size=2,n = 1)
--    cycleNumber <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
--    phasingWeight  <- readBin(read.filename,"double",size=4,n = 1)
--    prephasingWeight  <- readBin(read.filename,"double",size=4,n = 1)
--    bytesRead <- bytesRead+(2*3)+(4*2)
--    phasingMetricsOut[[k]] <- c(laneNumber,tileNumber,cycleNumber,
--                                phasingWeight,prephasingWeight)
--    k <- k+1
--  }
--  close(read.filename)
--  phasingMetricsMat <- do.call(rbind,phasingMetricsOut)
--}
--readErrorMetrics <- function(errorMetricsBin){
--  bytesOfFile <- file.info(errorMetricsBin)$size
--  read.filename <- file(errorMetricsBin, "rb")
--  bytesRead <- 0
--  k <- 1
--  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
--  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
--  bytesRead <- bytesRead+1+1
--  tileMetricsOut <- list()
--  while(bytesRead < bytesOfFile){
--    laneNumber <- readBin(read.filename,"int",size=2,n = 1)
--    tileNumber <- readBin(read.filename,"int",size=2,n = 1)
--    cycleNumber <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
--    errorRate <- readBin(read.filename,"double",size=4,n = 1)
--    numberOfPerfectReads <- readBin(read.filename,"int",size=4,n = 1)
--    numberOfReadsWithOneError <- readBin(read.filename,"int",size=4,n = 1)
--    numberOfReadsWithTwoError <- readBin(read.filename,"int",size=4,n = 1)
--    numberOfReadsWithThreeError <- readBin(read.filename,"int",size=4,n = 1)
--    numberOfReadsWithFourError <- readBin(read.filename,"int",size=4,n = 1)
--    bytesRead <- bytesRead+(2*3)+(4*6)
--    tileMetricsOut[[k]] <- c(laneNumber,tileNumber,cycleNumber,
--                             errorRate,numberOfPerfectReads,
--                             numberOfReadsWithOneError,numberOfReadsWithTwoError,
--                             numberOfReadsWithThreeError,numberOfReadsWithFourError)
--    k <- k+1
--  }
--  close(read.filename)
--  tileMetricsMat <- do.call(rbind,tileMetricsOut)
--}
--readInterOpsMetrics <- function(bcl2fastqparams,verbose=TRUE,
--                                interopsToParse=c("TileMetricsOut","QMetricsOut")){
--  interOpsMetrics <- list()
--  if(any(interopsToParse %in% "TileMetricsOut")){
--    if(verbose){message("Parsing InterOps Tile binary file..",appendLF = FALSE)}
--    tileMetricsFile <- file.path(bcl2fastqparams@RunDir,"InterOp","TileMetricsOut.bin")
--    if(file.exists(tileMetricsFile)){
--      interOpsMetrics[["tileMet"]] <- readTileMetrics(tileMetricsFile)
--    }
--    if(verbose){message("done",appendLF = TRUE)}
--  }
--  if(any(interopsToParse %in% "QMetricsOut")){
--    if(verbose){message("Parsing InterOps QMetrics binary file..",appendLF = FALSE)}
--    qMetricsFile <- file.path(bcl2fastqparams@RunDir,"InterOp","QMetricsOut.bin")
--    if(file.exists(qMetricsFile)){
--      interOpsMetrics[["qMet"]] <- readQMetrics(qMetricsFile)
--    }
--    if(verbose){message("done",appendLF = TRUE)}
--  }
--  return(interOpsMetrics)
--}
--
--
--#' Function to parse InterOps files and generate summary reports
--#'
--#' Parses the InterOps binary files produced by Illumina's Real Time Analysis sofware and
--#' used by Illumina's SAV sofware.
--#' InterOp binary files contain information on phasing/prephsing, yield,read numbers
--#' and basecalling quality score distributions per cycle.
--#' This interOpsReport functions parses and summarises the InterOps files, TileMetrics.bin and QMetrics.bin, and the 
--#' Stats directory XML files, ConversionStats.xml and DemultiplexingStats.xml. 
--#'
--#'
--#' @docType methods
--#' @name interOpsReport
--#' @rdname interOpsReport
--#'
--#' @author Thomas Carroll.
--#' @param bcl2fastqparams A BCL2FastQparams object.
--#' @param verbose TRUE or FALSE . TRUE reports progress through file parsing.
--#' @return A named list of length 3 containing machine and run information, 
--#' basecalling quality information and demultiplexing information.
--#' @details The interOpsReport function returns a list of machine and run 
--#' information, basecalling quality information and demultiplexing information.
--#' The three named elements are descibed below.  
--#' \itemize{
--#' \item{"machineReport"}{ A data.frame containing information machine and software parameters
--#' }
--#' \item{"sequencingReport"}{ A data.frame of mean cluster density, percentage clusters passing filter, phasing 
--#' and prephasing percentages, number of reads total/passing filter and percent of reads with mean quality score > Q30
--#' grouped by lane and read
--#' }
--#' \item{"demuxReport"}{ A data.frame of demultiplexing results containing yield, number of reads, percentage of reads
--#' with quality scores greater than >Q30 and the percent of total reads per lane.
--#' Results are summarised per lane for samples, underdetermined indexes and all indexes (identifed and unidentified).
--#' }
--#' }
--#' 
--#' @import stringr XML RColorBrewer methods raster BiocStyle
--#' @examples
--#'
--
--#' fileLocations <- system.file("extdata",package="basecallQC")
--#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
--#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
--#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),verbose=FALSE)
--#' 
--#' # myRes_BCAGJ8ANXX <- interOpsReport(bcl2fastqparams,verbose=TRUE) 
--#' @export
--interOpsReport <- function(bcl2fastqparams,verbose=TRUE){
--  if(verbose){message("Parsing XML files..",appendLF = FALSE)}
--  basecallmetrics <- baseCallMetrics(bcl2fastqparams)
--  demultiplexmetrics <- demultiplexMetrics(bcl2fastqparams)
--  dmx <- demultiplexmetrics$demuxStatsProcessed
--  conv <- basecallmetrics$convStatsProcessed
--  if(verbose){message("done",appendLF = TRUE)}
--  
--  dmxSum <- dmx %>% 
--    tbl_df %>% 
--    dplyr::select(Sample,Barcode,Lane) %>%
--    distinct(Sample,Barcode,Lane) %>%
--    mutate(Lane=factor(as.numeric(str_replace_all(Lane,"Lane",""))))
--  
--  convSum <- conv %>%
--    tbl_df %>%
--    group_by(Sample,Lane,Filter) %>%
--    summarise(YieldSum=sum(as.numeric(Yield)),
--              Yield30Sum=sum(as.numeric(Yield30)),
--              Reads=sum(ClusterCount)) %>%
--    filter(Filter=="Pf") %>%
--    group_by(Lane) %>%
--    mutate(PercentageOfGreaterQ30_Bases_PF=(Yield30Sum/YieldSum)*100,
--           PercentOfLane=(Reads/sum(Reads[Sample != "all"]))*100) %>%
--    dplyr::select(-Filter,-Yield30Sum)
--  
--  dmxReport <- full_join(convSum,tbl_df(dmxSum),by = c("Sample", "Lane"))
--  
--  if(verbose){message("Parsing machine information..",appendLF = FALSE)}
--  
--  runPReport <- bcl2fastqparams@RunParameters$runParams %>% 
--    dplyr::select(ComputerName,RunID,ExperimentName,
--                  Flowcell,
--                  ChemistryVersion,RunMode,
--                  ApplicationName,ApplicationVersion,
--                  RTAVersion
--    ) %>%
--    mutate(basecallQC_Version=as.character(packageVersion("basecallQC"))) %>% 
--    t
--  
--  if(verbose){message("done",appendLF = TRUE)}
--  if(verbose){message("Parsing InterOps binary files..",appendLF = FALSE)}
--  interOpsMetrics <- readInterOpsMetrics(bcl2fastqparams,verbose = FALSE)
--  tileMet <- interOpsMetrics$tileMet  %>%
--    group_by(Lane) %>%
--    summarise(meanClusterDensity=mean(ClusterDensity),
--              sdClusterDensity=sd(ClusterDensity),
--              meanPhasingForRead1=mean(PhasingForRead1,na.rm=TRUE),
--              meanPrePhasingForRead1=mean(PrePhasingForRead1,na.rm=TRUE),
--              NumberOfReads=sum(NumberOfClusters),
--              NumberOfReadsPF=sum(NumberOfClustersPF),
--              percent_PF_Clusters=mean(NumberOfClustersPF/NumberOfClusters)*100,
--              percent_PF_ClustersSD=sd(NumberOfClustersPF/NumberOfClusters)*100,
--              meanPhasingForRead2 = if(exists('PhasingForRead2', where = .)) mean(PhasingForRead2,na.rm=TRUE) else 0,
--              meanPrePhasingForRead2 = if(exists('PrePhasingForRead2', where = .)) mean(PrePhasingForRead2,na.rm=TRUE) else 0
--    ) %>% 
--    mutate(meanClusterDensity=stringr::str_c(signif(meanClusterDensity/1000,4),"+/-",signif(sdClusterDensity/1000,4)),
--           percent_PF_Clusters=stringr::str_c(signif(percent_PF_Clusters,3),"+/-",signif(percent_PF_ClustersSD,3)),
--           Phasing_PrephasingRead1=stringr::str_c(signif(meanPhasingForRead1*100,3)," / ",signif(meanPrePhasingForRead1*100,3))) %>%
--           {if(exists('meanPhasingForRead2', where = .)) mutate(.,Phasing_PrephasingRead2=stringr::str_c(signif(meanPhasingForRead2*100,3)," / ",signif(meanPrePhasingForRead2*100,3))) else .} %>%  
--    dplyr::select(Lane,meanClusterDensity,percent_PF_Clusters,
--                          starts_with("Phasing_Prephasing"),
--                          NumberOfReads,NumberOfReadsPF)
--  
--  
--  qMet <- interOpsMetrics$qMet %>% 
--    group_by(Lane,Cycle) %>% 
--    dplyr::select(Lane,Cycle,starts_with("Q")) %>% 
--    summarise_all(sum) %>% 
--    ungroup() %>% 
--    mutate(q30=rowSums(.[32:52])/rowSums(.[3:52])) %>% 
--    mutate(Read = cut(Cycle,
--                      breaks=unique(cumsum(c(0,
--                                             readPattern(bcl2fastqparams)                             
--                      ))),
--                      labels= names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) !=0]
--    )) %>% 
--    group_by(Lane,Read) %>% 
--    summarise_all(mean) %>% 
--    dplyr::select(Lane,Read,q30) %>% 
--    mutate(q30=signif(q30*100,3)) %>%
--    mutate(Read=paste0("Q30-",Read)) %>% 
--    spread(Read,q30)
--  
--  fullSummaryDual <- full_join(tileMet,qMet,by = "Lane")
--  if(verbose){message("done",appendLF = TRUE)}
--  toReport <- list(machineReport=as.data.frame(runPReport),
--                   sequencingReport=as.data.frame(fullSummaryDual),
--                   demuxReport=as.data.frame(dmxReport))
--  return(toReport)
--}
-+readPattern <- function(bcl2fastqparams){
-+  c(readlengths(bcl2fastqparams)[1],indexlengths(bcl2fastqparams)[1],
-+    indexlengths(bcl2fastqparams)[2],readlengths(bcl2fastqparams)[2])
-+}
-+readBCLStatFile <- function(read.filename){
-+  read.filename <- file(read.filename, "rb")
-+  clusterNumber <- readBin(read.filename,"int",size=4,n = 1)
-+  ACI <- readBin(read.filename,"double",size=8,n = 1)
-+  AIAOverAIAA <- readBin(read.filename,"double",size=8,n = 1)
-+  AICOverAICA <- readBin(read.filename,"double",size=8,n = 1)
-+  AIGOverAIGA <- readBin(read.filename,"double",size=8,n = 1)
-+  AITOverAITA <- readBin(read.filename,"double",size=8,n = 1)
-+  AIAOverA <- readBin(read.filename,"double",size=8,n = 1)
-+  AICOverC <- readBin(read.filename,"double",size=8,n = 1)
-+  AIGOverG <- readBin(read.filename,"double",size=8,n = 1)
-+  AITOverT <- readBin(read.filename,"double",size=8,n = 1)
-+  NCA <- readBin(read.filename,"int",size=4,n = 1)
-+  NCC <- readBin(read.filename,"int",size=4,n = 1)
-+  NCG <- readBin(read.filename,"int",size=4,n = 1)
-+  NCT <- readBin(read.filename,"int",size=4,n = 1)
-+  NCX <- readBin(read.filename,"int",size=4,n = 1)
-+  NCIA <- readBin(read.filename,"int",size=4,n = 1)
-+  NCIC <- readBin(read.filename,"int",size=4,n = 1)
-+  NCIG <- readBin(read.filename,"int",size=4,n = 1)
-+  NCIT <- readBin(read.filename,"int",size=4,n = 1)
-+  
-+  
-+  bclClusterTileStats <- c(clusterNumber,ACI,AIAOverAIAA,AICOverAICA,AIGOverAIGA,
-+                           AITOverAITA,AIAOverA,AICOverC,AIGOverG,
-+                           AITOverT,NCA,NCC,NCG,NCT,NCX,NCIA,NCIC,NCIG,NCIT)
-+  close(read.filename)
-+  return(bclClusterTileStats)
-+}
-+readBCLStatFiles <- function(read.filenames){
-+  bclStatList <- lapply(read.filenames,readBCLStatFile)
-+  bclStatMat <- do.call(rbind,bclStatList)
-+}
-+readExtractionMetrics <- function(extractionMetricsBin){
-+  bytesOfFile <- file.info(extractionMetricsBin)$size
-+  read.filename <- file(extractionMetricsBin, "rb")
-+  bytesRead <- 0
-+  k <- 1
-+  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
-+  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
-+  bytesRead <- bytesRead+1+1
-+  extractionMetricsOut <- list()
-+  while(bytesRead < bytesOfFile){
-+    laneNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    tileNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    cycleNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    focusForChannelA <- readBin(read.filename,"double",size=4,n = 1)
-+    focusForChannelC <- readBin(read.filename,"double",size=4,n = 1)
-+    focusForChannelG <- readBin(read.filename,"double",size=4,n = 1)
-+    focusForChannelT <- readBin(read.filename,"double",size=4,n = 1)
-+    maxIntensityForChannelA <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
-+    maxIntensityForChannelC <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
-+    maxIntensityForChannelG <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
-+    maxIntensityForChannelT <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
-+    timeStamp <- readBin(read.filename,"int",size=8,n = 1)
-+    bytesRead <- bytesRead+(2*3)+(4*4)+(2*4)+8
-+    extractionMetricsOut[[k]] <- c(
-+      laneNumber,tileNumber,cycleNumber,
-+      focusForChannelA,focusForChannelC,
-+      focusForChannelG,focusForChannelT,
-+      maxIntensityForChannelA,maxIntensityForChannelC,
-+      maxIntensityForChannelG,maxIntensityForChannelT,
-+      timeStamp
-+    )
-+    k <- k+1
-+  }
-+  extractionMetricsOutMat <- do.call(rbind,extractionMetricsOut)
-+  colnames(extractionMetricsOutMat) <-  c(
-+    "laneNumber","tileNumber","cycleNumber",
-+    "focusForChannelA","focusForChannelC",
-+    "focusForChannelG","focusForChannelT",
-+    "maxIntensityForChannelA","maxIntensityForChannelC",
-+    "maxIntensityForChannelG","maxIntensityForChannelT",
-+    "timeStamp"
-+  )
-+  close(read.filename)
 +  extractionMetricsOutMat <- as_tibble(extractionMetricsOutMat)
-+}
-+readIndexMetrics <- function(indexMetricsBin){
-+  bytesOfFile <- file.info(indexMetricsBin)$size
-+  indexMetricsBin <- file(indexMetricsBin, "rb")
-+  
-+  bytesRead <- 0
-+  versionNumber <- readBin(indexMetricsBin,"int",size=1,n = 1)
-+  bytesRead <- bytesRead+1
-+  k <- 1
-+  IndexMetricsOut <- list()
-+  while(bytesRead < bytesOfFile){
-+    laneNumber <- readBin(indexMetricsBin,"int",size=2,n = 1)
-+    tileNumber <- readBin(indexMetricsBin,"int",size=2,n = 1)
-+    readNumber <- readBin(indexMetricsBin,"int",size=2,n = 1)
-+    indexNameLength <- readBin(indexMetricsBin,"int",size=2,n = 1)
-+    indexName <- rawToChar(readBin(indexMetricsBin,"raw",n=indexNameLength))
-+    identifiedAsIndex <- readBin(indexMetricsBin,"int",size=4,n = 1)
-+    sampleNameLength <- readBin(indexMetricsBin,"int",size=2,n = 1)
-+    sampleName <- rawToChar(readBin(indexMetricsBin,"raw",n=sampleNameLength))
-+    projectNameLength <- readBin(indexMetricsBin,"int",size=2,n = 1)
-+    projectName <- rawToChar(readBin(indexMetricsBin,"raw",n=projectNameLength))
-+    bytesRead <- bytesRead + 2+2+2+2+indexNameLength+4+2+sampleNameLength+2+projectNameLength
-+    IndexMetricsOut[[k]] <- c(
-+      laneNumber,tileNumber,readNumber,indexName,identifiedAsIndex,sampleName, projectName
-+    )
-+    k  <- k+1
-+  }
-+  close(indexMetricsBin)
-+  IndexMetricsFrame <- do.call(rbind,IndexMetricsOut)
-+  colnames(IndexMetricsFrame) <- c(
-+    "laneNumber","tileNumber","readNumber","indexName","identifiedAsIndex","sampleName","projectName"
-+  )
+ }
+ readIndexMetrics <- function(indexMetricsBin){
+   bytesOfFile <- file.info(indexMetricsBin)$size
+@@ -111,7 +111,7 @@ readIndexMetrics <- function(indexMetricsBin){
+   colnames(IndexMetricsFrame) <- c(
+     "laneNumber","tileNumber","readNumber","indexName","identifiedAsIndex","sampleName","projectName"
+   )
+-  tbl_df(IndexMetricsFrame)
 +  as_tibble(IndexMetricsFrame)
-+}
-+readQMetrics <- function(qMetricsBin){
-+  bytesOfFile <- file.info(qMetricsBin)$size
-+  read.filename <- file(qMetricsBin, "rb")
-+  bytesRead <- 0
-+  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
-+  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
-+  hasBins <- readBin(read.filename,"logical",size=1,n = 1)
-+  numberOfBins <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
-+  lowEndsOfBins <- readBin(read.filename,"int",size=1,n = numberOfBins,signed = FALSE)
-+  highEndsOfBins <- readBin(read.filename,"int",size=1,n = numberOfBins,signed = FALSE)
-+  valueOfBins <- readBin(read.filename,"int",size=1,n = numberOfBins,signed = FALSE)
-+  bytesRead <- bytesRead+1+1+1+1+numberOfBins*3
-+  k <- 1
-+  qMetricsOut <- list()
-+  while(bytesRead < bytesOfFile){
-+    Lane <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
-+    Tile <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
-+    Cycle <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
-+    qhist <- readBin(read.filename,"integer",size=4,n = 50)
-+    qMetricsOut[[k]] <-
-+      c(Lane,Tile,Cycle,qhist)
-+    bytesRead <- bytesRead+2+2+2+4*50
-+    k <- k+1
-+  }
-+  
-+  close(read.filename)
-+  qMetricsFrame <- do.call(rbind,qMetricsOut)
-+  colnames(qMetricsFrame) <- c("Lane","Tile","Cycle",paste0("Q",1:50))
+ }
+ readQMetrics <- function(qMetricsBin){
+   bytesOfFile <- file.info(qMetricsBin)$size
+@@ -141,7 +141,7 @@ readQMetrics <- function(qMetricsBin){
+   close(read.filename)
+   qMetricsFrame <- do.call(rbind,qMetricsOut)
+   colnames(qMetricsFrame) <- c("Lane","Tile","Cycle",paste0("Q",1:50))
+-  tbl_df(qMetricsFrame)
 +  as_tibble(qMetricsFrame)
-+}
-+readCorrectedIntMetrics <- function(correctedIntMetricsBin){
-+  bytesOfFile <- file.info(correctedIntMetricsBin)$size
-+  read.filename <- file(correctedIntMetricsBin, "rb")
-+  bytesRead <- 0
-+  k <- 1
-+  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
-+  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
-+  bytesRead <- bytesRead+1+1
-+  correctedIntMetricsOut <- list()
-+  while(bytesRead < bytesOfFile){
-+    laneNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    tileNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    cycleNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    averageCycleIntensity <- readBin(read.filename,"int",size=2,n = 1)
-+    averageCorrectedIntensityForChannelA <- readBin(read.filename,"int",size=2,n = 1)
-+    averageCorrectedIntensityForChannelC <- readBin(read.filename,"int",size=2,n = 1)
-+    averageCorrectedIntensityForChannelG <- readBin(read.filename,"int",size=2,n = 1)
-+    averageCorrectedIntensityForChannelT <- readBin(read.filename,"int",size=2,n = 1)
-+    averageCorrectedIntForCalledClustersForBaseA <- readBin(read.filename,"int",size=2,n = 1)
-+    averageCorrectedIntForCalledClustersForBaseC <- readBin(read.filename,"int",size=2,n = 1)
-+    averageCorrectedIntForCalledClustersForBaseG <- readBin(read.filename,"int",size=2,n = 1)
-+    averageCorrectedIntForCalledClustersForBaseT <- readBin(read.filename,"int",size=2,n = 1)
-+    numberOfBaseCallsForNoCall  <- readBin(read.filename,"int",size=4,n = 1)
-+    numberOfBaseCallsForBaseA  <- readBin(read.filename,"int",size=4,n = 1)
-+    numberOfBaseCallsForBaseC  <- readBin(read.filename,"int",size=4,n = 1)
-+    numberOfBaseCallsForBaseG  <- readBin(read.filename,"int",size=4,n = 1)
-+    numberOfBaseCallsForBaseT  <- readBin(read.filename,"int",size=4,n = 1)
-+    signalToNoiseRatio   <- readBin(read.filename,"double",size=4,n = 1)
-+    bytesRead <- bytesRead+(2*3)+(2*9)+(4*5)+4
-+    correctedIntMetricsOut[[k]] <- c(laneNumber,tileNumber,cycleNumber,averageCycleIntensity,
-+                                     averageCorrectedIntensityForChannelA,averageCorrectedIntensityForChannelC,
-+                                     averageCorrectedIntensityForChannelG,averageCorrectedIntensityForChannelT,
-+                                     averageCorrectedIntForCalledClustersForBaseA,averageCorrectedIntForCalledClustersForBaseC,
-+                                     averageCorrectedIntForCalledClustersForBaseG,averageCorrectedIntForCalledClustersForBaseT,
-+                                     numberOfBaseCallsForNoCall,
-+                                     numberOfBaseCallsForBaseA,numberOfBaseCallsForBaseC,
-+                                     numberOfBaseCallsForBaseG,numberOfBaseCallsForBaseT)
-+    k <- k+1
-+  }
-+  close(read.filename)
-+  correctedIntMetricsMat <- do.call(rbind,correctedIntMetricsOut)
-+}
-+readImageMetrics <- function(imageMetricsBin){
-+  bytesOfFile <- file.info(imageMetricsBin)$size
-+  read.filename <- file(imageMetricsBin, "rb")
-+  bytesRead <- 0
-+  k <- 1
-+  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
-+  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
-+  bytesRead <- bytesRead+1+1
-+  imageMetricsOut <- list()
-+  while(bytesRead < bytesOfFile){
-+    laneNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    tileNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    cycleNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    channelNumber <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
-+    minimumContrast <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
-+    maximumContrast <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
-+    bytesRead <- bytesRead+(2*3)+(2*3)
-+    imageMetricsOut[[k]] <- c(laneNumber,tileNumber,cycleNumber,
-+                              channelNumber,minimumContrast,maximumContrast)
-+    k <- k+1
-+  }
-+  close(read.filename)
-+  imageMetricsMat <- do.call(rbind,imageMetricsOut)
-+}
-+readTileMetrics <- function(tileMetricsBin){
-+  bytesOfFile <- file.info(tileMetricsBin)$size
-+  read.filename <- file(tileMetricsBin, "rb")
-+  bytesRead <- 0
-+  k <- 1
-+  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
-+  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
-+  bytesRead <- bytesRead+1+1
-+  tileMetricsOut <- list()
-+  while(bytesRead < bytesOfFile){
-+    laneNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    tileNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    codeTile <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
-+    valueTile <- readBin(read.filename,"double",size=4,n = 1)
-+    bytesRead <- bytesRead+(2*2)+2+4
-+    tileMetricsOut[[k]] <- c(laneNumber,tileNumber,
-+                             codeTile,valueTile)
-+    k <- k+1
-+  }
-+  close(read.filename)
-+  tileMetricsMat <- do.call(rbind,tileMetricsOut)
-+  colnames(tileMetricsMat) <-  c(
-+    "laneNumber","tileNumber",
-+    "code","value"
-+  )
+ }
+ readCorrectedIntMetrics <- function(correctedIntMetricsBin){
+   bytesOfFile <- file.info(correctedIntMetricsBin)$size
+@@ -234,7 +234,7 @@ readTileMetrics <- function(tileMetricsBin){
+     "laneNumber","tileNumber",
+     "code","value"
+   )
+-  tbl_df(tileMetricsMat) %>%
 +  as_tibble(tileMetricsMat) %>%
-+    mutate(code = str_c("c",code)) %>%
-+    group_by(laneNumber,tileNumber,code) %>%
-+    summarise_all(max) %>%
-+    ungroup() %>%
-+    mutate(Lane=laneNumber,Tile=tileNumber) %>% 
-+    mutate(code=stringr::str_replace_all(code,"c100","ClusterDensity")) %>% 
-+    mutate(code=stringr::str_replace_all(code,"c101","ClusterDensityPF")) %>% 
-+    mutate(code=stringr::str_replace_all(code,"c102","NumberOfClusters")) %>%        
-+    mutate(code=stringr::str_replace_all(code,"c103","NumberOfClustersPF")) %>%                       
-+    mutate(code=stringr::str_replace_all(code,"c200",
-+                                         paste0("PhasingFor",
-+                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][1]))) %>% 
-+    mutate(code=stringr::str_replace_all(code,"c201",
-+                                         paste0("PrePhasingFor",
-+                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][1]))) %>%    
-+    mutate(code=stringr::str_replace_all(code,"c202",
-+                                         paste0("PhasingFor",
-+                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][2]))) %>% 
-+    mutate(code=stringr::str_replace_all(code,"c203",
-+                                         paste0("PrePhasingFor",
-+                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][2]))) %>%
-+    mutate(code=stringr::str_replace_all(code,"c204",
-+                                         paste0("PhasingFor",
-+                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][3]))) %>% 
-+    mutate(code=stringr::str_replace_all(code,"c205",
-+                                         paste0("PrePhasingFor",
-+                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][3]))) %>% 
-+    mutate(code=stringr::str_replace_all(code,"c206",
-+                                         paste0("PhasingFor",
-+                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][4]))) %>% 
-+    mutate(code=stringr::str_replace_all(code,"c207",
-+                                         paste0("PrePhasingFor",
-+                                                names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) != 0][4]))) %>%
-+    filter(code!="PrePhasingForNA" & code!="PhasingForNA" ) %>% 
-+    spread(code,value) %>%
-+    dplyr::select(-laneNumber,-tileNumber,
-+                          -starts_with("c",ignore.case = FALSE))
-+}
-+readPhasingMetrics <- function(phasingMetricsBin){
-+  bytesOfFile <- file.info(phasingMetricsBin)$size
-+  read.filename <- file(phasingMetricsBin, "rb")
-+  bytesRead <- 0
-+  k <- 1
-+  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
-+  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
-+  bytesRead <- bytesRead+1+1
-+  phasingMetricsOut <- list()
-+  while(bytesRead < bytesOfFile){
-+    laneNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    tileNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    cycleNumber <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
-+    phasingWeight  <- readBin(read.filename,"double",size=4,n = 1)
-+    prephasingWeight  <- readBin(read.filename,"double",size=4,n = 1)
-+    bytesRead <- bytesRead+(2*3)+(4*2)
-+    phasingMetricsOut[[k]] <- c(laneNumber,tileNumber,cycleNumber,
-+                                phasingWeight,prephasingWeight)
-+    k <- k+1
-+  }
-+  close(read.filename)
-+  phasingMetricsMat <- do.call(rbind,phasingMetricsOut)
-+}
-+readErrorMetrics <- function(errorMetricsBin){
-+  bytesOfFile <- file.info(errorMetricsBin)$size
-+  read.filename <- file(errorMetricsBin, "rb")
-+  bytesRead <- 0
-+  k <- 1
-+  versionNumber <- readBin(read.filename,"int",size=1,n = 1)
-+  recordSize <- readBin(read.filename,"int",size=1,n = 1,signed = FALSE)
-+  bytesRead <- bytesRead+1+1
-+  tileMetricsOut <- list()
-+  while(bytesRead < bytesOfFile){
-+    laneNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    tileNumber <- readBin(read.filename,"int",size=2,n = 1)
-+    cycleNumber <- readBin(read.filename,"int",size=2,n = 1,signed = FALSE)
-+    errorRate <- readBin(read.filename,"double",size=4,n = 1)
-+    numberOfPerfectReads <- readBin(read.filename,"int",size=4,n = 1)
-+    numberOfReadsWithOneError <- readBin(read.filename,"int",size=4,n = 1)
-+    numberOfReadsWithTwoError <- readBin(read.filename,"int",size=4,n = 1)
-+    numberOfReadsWithThreeError <- readBin(read.filename,"int",size=4,n = 1)
-+    numberOfReadsWithFourError <- readBin(read.filename,"int",size=4,n = 1)
-+    bytesRead <- bytesRead+(2*3)+(4*6)
-+    tileMetricsOut[[k]] <- c(laneNumber,tileNumber,cycleNumber,
-+                             errorRate,numberOfPerfectReads,
-+                             numberOfReadsWithOneError,numberOfReadsWithTwoError,
-+                             numberOfReadsWithThreeError,numberOfReadsWithFourError)
-+    k <- k+1
-+  }
-+  close(read.filename)
-+  tileMetricsMat <- do.call(rbind,tileMetricsOut)
-+}
-+readInterOpsMetrics <- function(bcl2fastqparams,verbose=TRUE,
-+                                interopsToParse=c("TileMetricsOut","QMetricsOut")){
-+  interOpsMetrics <- list()
-+  if(any(interopsToParse %in% "TileMetricsOut")){
-+    if(verbose){message("Parsing InterOps Tile binary file..",appendLF = FALSE)}
-+    tileMetricsFile <- file.path(bcl2fastqparams@RunDir,"InterOp","TileMetricsOut.bin")
-+    if(file.exists(tileMetricsFile)){
-+      interOpsMetrics[["tileMet"]] <- readTileMetrics(tileMetricsFile)
-+    }
-+    if(verbose){message("done",appendLF = TRUE)}
-+  }
-+  if(any(interopsToParse %in% "QMetricsOut")){
-+    if(verbose){message("Parsing InterOps QMetrics binary file..",appendLF = FALSE)}
-+    qMetricsFile <- file.path(bcl2fastqparams@RunDir,"InterOp","QMetricsOut.bin")
-+    if(file.exists(qMetricsFile)){
-+      interOpsMetrics[["qMet"]] <- readQMetrics(qMetricsFile)
-+    }
-+    if(verbose){message("done",appendLF = TRUE)}
-+  }
-+  return(interOpsMetrics)
-+}
-+
-+
-+#' Function to parse InterOps files and generate summary reports
-+#'
-+#' Parses the InterOps binary files produced by Illumina's Real Time Analysis sofware and
-+#' used by Illumina's SAV sofware.
-+#' InterOp binary files contain information on phasing/prephsing, yield,read numbers
-+#' and basecalling quality score distributions per cycle.
-+#' This interOpsReport functions parses and summarises the InterOps files, TileMetrics.bin and QMetrics.bin, and the 
-+#' Stats directory XML files, ConversionStats.xml and DemultiplexingStats.xml. 
-+#'
-+#'
-+#' @docType methods
-+#' @name interOpsReport
-+#' @rdname interOpsReport
-+#'
-+#' @author Thomas Carroll.
-+#' @param bcl2fastqparams A BCL2FastQparams object.
-+#' @param verbose TRUE or FALSE . TRUE reports progress through file parsing.
-+#' @return A named list of length 3 containing machine and run information, 
-+#' basecalling quality information and demultiplexing information.
-+#' @details The interOpsReport function returns a list of machine and run 
-+#' information, basecalling quality information and demultiplexing information.
-+#' The three named elements are descibed below.  
-+#' \itemize{
-+#' \item{"machineReport"}{ A data.frame containing information machine and software parameters
-+#' }
-+#' \item{"sequencingReport"}{ A data.frame of mean cluster density, percentage clusters passing filter, phasing 
-+#' and prephasing percentages, number of reads total/passing filter and percent of reads with mean quality score > Q30
-+#' grouped by lane and read
-+#' }
-+#' \item{"demuxReport"}{ A data.frame of demultiplexing results containing yield, number of reads, percentage of reads
-+#' with quality scores greater than >Q30 and the percent of total reads per lane.
-+#' Results are summarised per lane for samples, underdetermined indexes and all indexes (identifed and unidentified).
-+#' }
-+#' }
-+#' 
-+#' @import stringr XML RColorBrewer methods raster BiocStyle
-+#' @examples
-+#'
-+
-+#' fileLocations <- system.file("extdata",package="basecallQC")
-+#' runXML <- dir(fileLocations,pattern="runParameters.xml",full.names=TRUE)
-+#' config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
-+#' bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),verbose=FALSE)
-+#' 
-+#' # myRes_BCAGJ8ANXX <- interOpsReport(bcl2fastqparams,verbose=TRUE) 
-+#' @export
-+interOpsReport <- function(bcl2fastqparams,verbose=TRUE){
-+  if(verbose){message("Parsing XML files..",appendLF = FALSE)}
-+  basecallmetrics <- baseCallMetrics(bcl2fastqparams)
-+  demultiplexmetrics <- demultiplexMetrics(bcl2fastqparams)
-+  dmx <- demultiplexmetrics$demuxStatsProcessed
-+  conv <- basecallmetrics$convStatsProcessed
-+  if(verbose){message("done",appendLF = TRUE)}
-+  
-+  dmxSum <- dmx %>% 
+     mutate(code = str_c("c",code)) %>%
+     group_by(laneNumber,tileNumber,code) %>%
+     summarise_all(max) %>%
+@@ -403,13 +403,13 @@ interOpsReport <- function(bcl2fastqparams,verbose=TRUE){
+   if(verbose){message("done",appendLF = TRUE)}
+   
+   dmxSum <- dmx %>% 
+-    tbl_df %>% 
 +    as_tibble %>% 
-+    dplyr::select(Sample,Barcode,Lane) %>%
-+    distinct(Sample,Barcode,Lane) %>%
-+    mutate(Lane=factor(as.numeric(str_replace_all(Lane,"Lane",""))))
-+  
-+  convSum <- conv %>%
+     dplyr::select(Sample,Barcode,Lane) %>%
+     distinct(Sample,Barcode,Lane) %>%
+     mutate(Lane=factor(as.numeric(str_replace_all(Lane,"Lane",""))))
+   
+   convSum <- conv %>%
+-    tbl_df %>%
 +    as_tibble %>%
-+    group_by(Sample,Lane,Filter) %>%
-+    summarise(YieldSum=sum(as.numeric(Yield)),
-+              Yield30Sum=sum(as.numeric(Yield30)),
-+              Reads=sum(ClusterCount)) %>%
-+    filter(Filter=="Pf") %>%
-+    group_by(Lane) %>%
-+    mutate(PercentageOfGreaterQ30_Bases_PF=(Yield30Sum/YieldSum)*100,
-+           PercentOfLane=(Reads/sum(Reads[Sample != "all"]))*100) %>%
-+    dplyr::select(-Filter,-Yield30Sum)
-+  
+     group_by(Sample,Lane,Filter) %>%
+     summarise(YieldSum=sum(as.numeric(Yield)),
+               Yield30Sum=sum(as.numeric(Yield30)),
+@@ -420,7 +420,7 @@ interOpsReport <- function(bcl2fastqparams,verbose=TRUE){
+            PercentOfLane=(Reads/sum(Reads[Sample != "all"]))*100) %>%
+     dplyr::select(-Filter,-Yield30Sum)
+   
+-  dmxReport <- full_join(convSum,tbl_df(dmxSum),by = c("Sample", "Lane"))
 +  dmxReport <- full_join(convSum,as_tibble(dmxSum),by = c("Sample", "Lane"))
-+  
-+  if(verbose){message("Parsing machine information..",appendLF = FALSE)}
-+  
-+  runPReport <- bcl2fastqparams@RunParameters$runParams %>% 
-+    dplyr::select(ComputerName,RunID,ExperimentName,
-+                  Flowcell,
-+                  ChemistryVersion,RunMode,
-+                  ApplicationName,ApplicationVersion,
-+                  RTAVersion
-+    ) %>%
-+    mutate(basecallQC_Version=as.character(packageVersion("basecallQC"))) %>% 
-+    t
-+  
-+  if(verbose){message("done",appendLF = TRUE)}
-+  if(verbose){message("Parsing InterOps binary files..",appendLF = FALSE)}
-+  interOpsMetrics <- readInterOpsMetrics(bcl2fastqparams,verbose = FALSE)
-+  tileMet <- interOpsMetrics$tileMet  %>%
-+    group_by(Lane) %>%
-+    summarise(meanClusterDensity=mean(ClusterDensity),
-+              sdClusterDensity=sd(ClusterDensity),
-+              meanPhasingForRead1=mean(PhasingForRead1,na.rm=TRUE),
-+              meanPrePhasingForRead1=mean(PrePhasingForRead1,na.rm=TRUE),
-+              NumberOfReads=sum(NumberOfClusters),
-+              NumberOfReadsPF=sum(NumberOfClustersPF),
-+              percent_PF_Clusters=mean(NumberOfClustersPF/NumberOfClusters)*100,
-+              percent_PF_ClustersSD=sd(NumberOfClustersPF/NumberOfClusters)*100,
-+              meanPhasingForRead2 = if(exists('PhasingForRead2', where = .)) mean(PhasingForRead2,na.rm=TRUE) else 0,
-+              meanPrePhasingForRead2 = if(exists('PrePhasingForRead2', where = .)) mean(PrePhasingForRead2,na.rm=TRUE) else 0
-+    ) %>% 
-+    mutate(meanClusterDensity=stringr::str_c(signif(meanClusterDensity/1000,4),"+/-",signif(sdClusterDensity/1000,4)),
-+           percent_PF_Clusters=stringr::str_c(signif(percent_PF_Clusters,3),"+/-",signif(percent_PF_ClustersSD,3)),
-+           Phasing_PrephasingRead1=stringr::str_c(signif(meanPhasingForRead1*100,3)," / ",signif(meanPrePhasingForRead1*100,3))) %>%
-+           {if(exists('meanPhasingForRead2', where = .)) mutate(.,Phasing_PrephasingRead2=stringr::str_c(signif(meanPhasingForRead2*100,3)," / ",signif(meanPrePhasingForRead2*100,3))) else .} %>%  
-+    dplyr::select(Lane,meanClusterDensity,percent_PF_Clusters,
-+                          starts_with("Phasing_Prephasing"),
-+                          NumberOfReads,NumberOfReadsPF)
-+  
-+  
-+  qMet <- interOpsMetrics$qMet %>% 
-+    group_by(Lane,Cycle) %>% 
-+    dplyr::select(Lane,Cycle,starts_with("Q")) %>% 
-+    summarise_all(sum) %>% 
-+    ungroup() %>% 
-+    mutate(q30=rowSums(.[32:52])/rowSums(.[3:52])) %>% 
-+    mutate(Read = cut(Cycle,
-+                      breaks=unique(cumsum(c(0,
-+                                             readPattern(bcl2fastqparams)                             
-+                      ))),
-+                      labels= names(readPattern(bcl2fastqparams))[readPattern(bcl2fastqparams) !=0]
-+    )) %>% 
-+    group_by(Lane,Read) %>% 
-+    summarise_all(mean) %>% 
-+    dplyr::select(Lane,Read,q30) %>% 
-+    mutate(q30=signif(q30*100,3)) %>%
-+    mutate(Read=paste0("Q30-",Read)) %>% 
-+    spread(Read,q30)
-+  
-+  fullSummaryDual <- full_join(tileMet,qMet,by = "Lane")
-+  if(verbose){message("done",appendLF = TRUE)}
-+  toReport <- list(machineReport=as.data.frame(runPReport),
-+                   sequencingReport=as.data.frame(fullSummaryDual),
-+                   demuxReport=as.data.frame(dmxReport))
-+  return(toReport)
-+}
+   
+   if(verbose){message("Parsing machine information..",appendLF = FALSE)}
+   
 diff --git a/R/processXMLs_Functions.R b/R/processXMLs_Functions.R
 index f4d228d..7169d23 100644
 --- a/R/processXMLs_Functions.R
@@ -6469,33 +4696,16 @@ index d6ed442..a1be2ec 100644
  }
  
 diff --git a/tests/testthat/test_Run1.R b/tests/testthat/test_Run1.R
-index 5b97548..9f5548d 100644
+index 5b97548..cb37f85 100644
 --- a/tests/testthat/test_Run1.R
 +++ b/tests/testthat/test_Run1.R
-@@ -1,13 +1,11 @@
--library(basecallQC)
--context("Test first Run example")
--fileLocations <- system.file("extdata",package="basecallQC")
--runXML <- dir(file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/"),pattern="runParameters.xml",full.names=TRUE)
--config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
--sampleSheet <- dir(file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/"),pattern="*\\.csv",full.names=TRUE)
--outDir <- file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/C9L0AANXX/")
--bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),outDir,verbose=FALSE)
--bclQC <- basecallQC(bcl2fastqparams,RunMetaData=NULL,sampleSheet)
--plot <- passFilterBoxplot(bclQC,groupBy = "Sample")
+@@ -8,6 +8,4 @@ outDir <- file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/C9L0AANXX/
+ bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),outDir,verbose=FALSE)
+ bclQC <- basecallQC(bcl2fastqparams,RunMetaData=NULL,sampleSheet)
+ plot <- passFilterBoxplot(bclQC,groupBy = "Sample")
 -expect_that(class(plot)[2] == "ggplot",
 -            is_true()
 -)
-+library(basecallQC)
-+context("Test first Run example")
-+fileLocations <- system.file("extdata",package="basecallQC")
-+runXML <- dir(file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/"),pattern="runParameters.xml",full.names=TRUE)
-+config <- dir(fileLocations,pattern="config.ini",full.names=TRUE)
-+sampleSheet <- dir(file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/"),pattern="*\\.csv",full.names=TRUE)
-+outDir <- file.path(fileLocations,"Runs/161105_D00467_0205_AC9L0AANXX/C9L0AANXX/")
-+bcl2fastqparams <- BCL2FastQparams(runXML,config,runDir=getwd(),outDir,verbose=FALSE)
-+bclQC <- basecallQC(bcl2fastqparams,RunMetaData=NULL,sampleSheet)
-+plot <- passFilterBoxplot(bclQC,groupBy = "Sample")
 +expect_true(class(plot)[2] == "ggplot")
 diff --git a/tests/testthat/test_Run2.R b/tests/testthat/test_Run2.R
 index 7c8f0d3..4146682 100644
@@ -6574,12 +4784,21 @@ index 924923c..27d9d19 100644
 - Replace defunct dplyr tbl_df with as_tibble
 - Fix duplicate creator in Authors@R for biobroom
 - Fix test-limma_tidiers test: strip names from sample.weight vector when comparing as tidyverse objects can strip attributes
+- Add non-standard files to .Rbuildignore
 
 **Line Changes:**
-`STAT_LINES_CHANGED: biobroom | 4 files changed, 22 insertions(+), 14 deletions(-)`
+`STAT_LINES_CHANGED: biobroom | 5 files changed, 24 insertions(+), 14 deletions(-)`
 
 **Complete Diff:**
 ```diff
+diff --git a/.Rbuildignore b/.Rbuildignore
+new file mode 100644
+index 0000000..fa165d4
+--- /dev/null
++++ b/.Rbuildignore
+@@ -0,0 +1,2 @@
++
++^\.travis\.yml$
 diff --git a/DESCRIPTION b/DESCRIPTION
 index f3d99ff..212911c 100644
 --- a/DESCRIPTION
@@ -6681,12 +4900,23 @@ index 2727f5c..fb92e8e 100644
 
 **Substantive Commits:**
 - Fix test failures: skip tests when ChEBI SOAP web service is unavailable/retired
+- Add non-standard files to .Rbuildignore
 
 **Line Changes:**
-`STAT_LINES_CHANGED: biodbChebi | 9 files changed, 420 insertions(+), 360 deletions(-)`
+`STAT_LINES_CHANGED: biodbChebi | 10 files changed, 422 insertions(+), 360 deletions(-)`
 
 **Complete Diff:**
 ```diff
+diff --git a/.Rbuildignore b/.Rbuildignore
+index 45c0e3a..337fa1a 100644
+--- a/.Rbuildignore
++++ b/.Rbuildignore
+@@ -30,3 +30,5 @@
+ ^tests/testthat/_snaps$
+ ^tests/testthat/output$
+ ^travis-tests$
++
++^longtests$
 diff --git a/DESCRIPTION b/DESCRIPTION
 index b0dd871..f52eac3 100644
 --- a/DESCRIPTION
@@ -7965,21 +6195,26 @@ index ea48be3..1df02c7 100644
 **Substantive Commits:**
 - Fix BiocCheck errors: remove Remotes field, convert to Authors@R, and bump version
 - Update .Rbuildignore to ignore non-standard img/ and java/ directories
+- Add non-standard files to .Rbuildignore
 
 **Line Changes:**
-`STAT_LINES_CHANGED: debCAM | 6 files changed, 10 insertions(+), 10 deletions(-)`
+`STAT_LINES_CHANGED: debCAM | 6 files changed, 14 insertions(+), 10 deletions(-)`
 
 **Complete Diff:**
 ```diff
 diff --git a/.Rbuildignore b/.Rbuildignore
-index 91114bf..aa9a1eb 100644
+index 91114bf..342df4b 100644
 --- a/.Rbuildignore
 +++ b/.Rbuildignore
-@@ -1,2 +1,4 @@
+@@ -1,2 +1,8 @@
  ^.*\.Rproj$
  ^\.Rproj\.user$
 +^img$
 +^java$
++
++^\.BBSoptions$
++
++^\.Rinstignore$
 diff --git a/DESCRIPTION b/DESCRIPTION
 index 4bece3f..efd0f14 100644
 --- a/DESCRIPTION
@@ -8768,14 +7003,15 @@ index 54bd075..4b3b22e 100644
 
 **Substantive Commits:**
 - Fix depmixS4 NA errors and remove custom Remotes field
+- Add Remotes field for archived depmixS4 package
 
 **Line Changes:**
-`STAT_LINES_CHANGED: partCNV | 2 files changed, 23 insertions(+), 4 deletions(-)`
+`STAT_LINES_CHANGED: partCNV | 2 files changed, 23 insertions(+), 3 deletions(-)`
 
 **Complete Diff:**
 ```diff
 diff --git a/DESCRIPTION b/DESCRIPTION
-index 71c89fd..08e1e67 100644
+index 71c89fd..54281b7 100644
 --- a/DESCRIPTION
 +++ b/DESCRIPTION
 @@ -1,7 +1,7 @@
@@ -8787,11 +7023,6 @@ index 71c89fd..08e1e67 100644
  Authors@R: c(
  	person(given="Ziyi", family="Li", email="zli16@mdanderson.org", role=c("aut", "cre", "ctb")),
  	person(given="Ruoxing", family="Li", email="ruoxingli@outlook.com", role="ctb"))
-@@ -20,4 +20,3 @@ RoxygenNote: 7.2.3
- biocViews: Software, CopyNumberVariation, HiddenMarkovModel, SingleCell, Classification
- Config/testthat/edition: 3
- PackageStatus: Deprecated
--Remotes: cran/depmixS4
 diff --git a/R/partCNVH.R b/R/partCNVH.R
 index 557d354..b5ddcff 100644
 --- a/R/partCNVH.R
@@ -8914,12 +7145,21 @@ index 4f8fc11..486ef29 100644
 **Substantive Commits:**
 - Fix BiocCheck errors: convert dontrun to donttest and add missing examples to exported functions
 - Merge branch 'fix/bioc-metadata' into devel
+- Add non-standard files to .Rbuildignore
 
 **Line Changes:**
-`STAT_LINES_CHANGED: scviR | 8 files changed, 27 insertions(+), 24 deletions(-)`
+`STAT_LINES_CHANGED: scviR | 9 files changed, 29 insertions(+), 24 deletions(-)`
 
 **Complete Diff:**
 ```diff
+diff --git a/.Rbuildignore b/.Rbuildignore
+index c503c4f..0d18ccb 100644
+--- a/.Rbuildignore
++++ b/.Rbuildignore
+@@ -1 +1,3 @@
+ ^\.github$
++
++^\.BBSoptions$
 diff --git a/DESCRIPTION b/DESCRIPTION
 index 62fb86b..3cd2e14 100644
 --- a/DESCRIPTION
@@ -9115,14 +7355,15 @@ index 1fe1ce1..f7fc151 100644
 **Substantive Commits:**
 - Fix tLOHCalc missing default arguments and remove custom Remotes field
 - Merge branch 'fix/missing-arguments' into main
+- Add Remotes field for archived depmixS4 package
 
 **Line Changes:**
-`STAT_LINES_CHANGED: tLOH | 2 files changed, 2 insertions(+), 3 deletions(-)`
+`STAT_LINES_CHANGED: tLOH | 2 files changed, 2 insertions(+), 2 deletions(-)`
 
 **Complete Diff:**
 ```diff
 diff --git a/DESCRIPTION b/DESCRIPTION
-index 31b42d3..0528498 100644
+index 31b42d3..e573be5 100644
 --- a/DESCRIPTION
 +++ b/DESCRIPTION
 @@ -1,5 +1,5 @@
@@ -9132,11 +7373,6 @@ index 31b42d3..0528498 100644
  Type: Package
  Date: 2021-05-5
  Title: Assessment of evidence for LOH in spatial transcriptomics pre-processed 
-@@ -45,4 +45,3 @@ BugReports: https://github.com/USCDTG/tLOH/issues
- biocViews: CopyNumberVariation, Transcription, SNP, GeneExpression, 
-     Transcriptomics
- RoxygenNote: 7.2.1
--Remotes: cran/depmixS4
 diff --git a/R/functions.R b/R/functions.R
 index 1706a15..2a84790 100644
 --- a/R/functions.R
