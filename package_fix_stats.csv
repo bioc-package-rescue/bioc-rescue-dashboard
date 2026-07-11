@@ -2,7 +2,7 @@ Package,Files Changed,Insertions,Deletions
 BPRMeth,4,5,5
 BiRewire,7,46,4
 BubbleTree,3,7,8
-CSAR,1,1,1
+CSAR,3,89,104
 CelliD,2,8,2
 DeconRNASeq,14,111,116
 GEOexplorer,1,1,0
@@ -30,9 +30,9 @@ ccrepe,3,60,178
 debCAM,6,14,10
 netZooR,41,139,116
 netprioR,1,2,3
-partCNV,2,23,3
-rols,4,6,7
-scviR,9,29,24
-soGGi,4,6,11
-tLOH,2,2,2
-tidytof,2,3,3
+partCNV,2,45,7
+rols,10,26,3
+scviR,11,42,9
+soGGi,7,8,375
+tLOH,2,8,8
+tidytof,4,11,8
