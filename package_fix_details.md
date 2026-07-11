@@ -4263,7 +4263,7 @@ index 969967d..d4f1d83 100644
 
 **Substantive Commits:**
 - Replace defunct dplyr tbl_df with as_tibble
-- Restore original CRLF line endings for modified files
+- Restore original CRLF line endings to prevent misleading diffs
 
 **Line Changes:**
 `STAT_LINES_CHANGED: basecallQC | 14 files changed, 83 insertions(+), 120 deletions(-)`
