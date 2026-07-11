@@ -1,5 +1,7 @@
 import os
 import subprocess
+import re
+import csv
 
 packages = [
     "BPRMeth", "BiRewire", "BubbleTree", "CSAR", "CelliD", "DeconRNASeq", 
@@ -25,8 +27,12 @@ def main():
     dashboard_dir = os.path.dirname(script_dir)
     workspace = os.path.dirname(dashboard_dir)
     output_file = os.path.join(dashboard_dir, "package_fix_details.md")
+    csv_file = os.path.join(dashboard_dir, "package_fix_stats.csv")
     
-    with open(output_file, "w") as f:
+    with open(output_file, "w") as f, open(csv_file, "w", newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(["Package", "Files Changed", "Insertions", "Deletions"])
+        
         f.write("# Package Fix Details\n\n")
         f.write("This document contains the complete diffs, commit summaries, and line change statistics for the 37 Bioconductor packages rescued in this workspace.\n\n")
         
@@ -92,6 +98,16 @@ def main():
             
             if not stat_content:
                 stat_content = "0 files changed, 0 insertions(+), 0 deletions(-)"
+                
+            files = insertions = deletions = 0
+            match_files = re.search(r'(\d+) file', stat_content)
+            if match_files: files = int(match_files.group(1))
+            match_ins = re.search(r'(\d+) insertion', stat_content)
+            if match_ins: insertions = int(match_ins.group(1))
+            match_del = re.search(r'(\d+) deletion', stat_content)
+            if match_del: deletions = int(match_del.group(1))
+            
+            csv_writer.writerow([pkg, files, insertions, deletions])
                 
             # Write to markdown
             f.write(f"## {pkg}\n\n")
