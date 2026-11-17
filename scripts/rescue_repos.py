@@ -7,7 +7,10 @@ rescue repository in the bioc-package-rescue GitHub organisation:
   - If the package has a GitHub upstream, it is forked.
   - Otherwise it is cloned from git.bioconductor.org and pushed as a new repo.
 
-Run sync_packages.py first to keep packages.csv up to date.
+Run sync_packages.py first to keep packages.csv up to date. A fork starts
+from the GitHub upstream, which may lag behind or differ from
+git.bioconductor.org, so run clone_repos.py and then sync_repos.py before
+making any rescue changes.
 """
 import csv
 import os

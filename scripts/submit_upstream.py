@@ -6,6 +6,11 @@ Automates preparing and opening a Pull Request from a rescued fork back to the
 original upstream repository (parent), ensuring that rescue-specific files
 (like .github/workflows/check-bioc.yml) are excluded from the PR diff.
 
+Rescue repos are synced with git.bioconductor.org devel before any fixes
+(see sync_repos.py), so the rescue changes are the diff between bioc/devel
+and the fix branch. Only that diff is applied to the upstream default branch;
+commits that came from git.bioconductor.org are not proposed as fixes.
+
 Usage:
   python scripts/submit_upstream.py <package_name> <fix_branch_name>
 """
@@ -78,6 +83,23 @@ def main():
         
     print("Fetching upstream...")
     run(["git", "fetch", "upstream"], cwd=local_path)
+
+    # The rescue changes are measured from the Bioconductor devel branch that
+    # the rescue repo was synced to, not from the GitHub upstream, which may
+    # lag behind or differ from git.bioconductor.org.
+    if "bioc" not in remotes:
+        bioc_url = f"https://git.bioconductor.org/packages/{pkg}"
+        print(f"Adding remote 'bioc' -> {bioc_url}")
+        run(["git", "remote", "add", "bioc", bioc_url], cwd=local_path)
+    print("Fetching bioc devel...")
+    run(["git", "fetch", "bioc", "devel"], cwd=local_path)
+    base_ref = "bioc/devel"
+    try:
+        run(["git", "merge-base", "--is-ancestor", base_ref, fix_branch], cwd=local_path)
+    except subprocess.CalledProcessError:
+        print(f"Error: '{fix_branch}' does not contain {base_ref}. "
+              f"Run scripts/sync_repos.py {pkg} and rebase the fix branch first.")
+        sys.exit(1)
     
     # Create a temporary submission branch off upstream default branch
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -88,8 +110,8 @@ def main():
     success = False
     try:
         # Find files modified in fix_branch compared to upstream/defaultBranch
-        print(f"Identifying modified package files from '{fix_branch}'...")
-        diff_files = run(["git", "diff", "--name-only", f"upstream/{upstream_default_branch}...{fix_branch}"], cwd=local_path, capture=True).splitlines()
+        print(f"Identifying package files changed between {base_ref} and '{fix_branch}'...")
+        diff_files = run(["git", "diff", "--name-only", f"{base_ref}..{fix_branch}"], cwd=local_path, capture=True).splitlines()
         
         # Filter out rescue-specific configuration files
         files_to_checkout = []
@@ -103,10 +125,23 @@ def main():
             print("No package-specific code changes found to submit.")
             return
             
-        print("Checking out modified files:")
+        print("Applying rescue changes to:")
         for f in files_to_checkout:
             print(f"  + {f}")
-            run(["git", "checkout", fix_branch, "--", f], cwd=local_path)
+        patch = subprocess.run(
+            ["git", "diff", "--binary", f"{base_ref}..{fix_branch}", "--", *files_to_checkout],
+            cwd=local_path, stdout=subprocess.PIPE, check=True).stdout
+        applied = subprocess.run(["git", "apply", "--3way", "--index"],
+                                 cwd=local_path, input=patch)
+        if applied.returncode != 0:
+            print(f"Error: the rescue changes do not apply cleanly to upstream/{upstream_default_branch}. "
+                  "Resolve the conflicts by hand.")
+            run(["git", "reset", "-q", "--hard"], cwd=local_path)
+            return
+        if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=local_path).returncode == 0:
+            print(f"upstream/{upstream_default_branch} already has these changes; nothing to submit.")
+            success = True
+            return
             
         # Commit the changes
         commit_msg = f"Fix R CMD check errors for {pkg}\n\nCo-authored-by: Antigravity <gemini@google.com>"
