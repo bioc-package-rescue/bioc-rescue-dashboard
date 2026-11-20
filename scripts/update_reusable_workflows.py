@@ -6,8 +6,9 @@ For each package in packages.csv that has build status ERROR/TIMEOUT, writes
 the minimal caller stub for the centralized check-bioc GHA workflow to the
 local checkout and pushes to the remote.
 
-Run sync_packages.py first to keep packages.csv up to date, and
-clone_repos.py to ensure local checkouts exist.
+Run sync_packages.py first to keep packages.csv up to date,
+clone_repos.py to ensure local checkouts exist, and sync_repos.py --push so
+the stub is committed on top of git.bioconductor.org devel.
 """
 import csv
 import os
