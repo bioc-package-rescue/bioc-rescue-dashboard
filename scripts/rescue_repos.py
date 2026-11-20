@@ -128,7 +128,9 @@ def clone_and_push(pkg):
         return False
 
     ssh = f"git@github.com:bioc-package-rescue/{pkg}.git"
+    bioc_ssh = f"git@git.bioconductor.org:packages/{pkg}"
     run(["git", "remote", "rename", "origin", "upstream"], cwd=tmp)
+    run(["git", "remote", "set-url", "--push", "upstream", bioc_ssh], cwd=tmp)
     run(["git", "remote", "add", "origin", ssh], cwd=tmp)
     run(["git", "push", "-u", "origin", "--all"], cwd=tmp)
     run(["git", "push", "-u", "origin", "--tags"], cwd=tmp)

@@ -8,14 +8,17 @@ rewritten, and the rescue default branch is rebuilt on top of it.
 
 For each local checkout (see clone_repos.py):
 
-  1. Fetch `devel` from https://git.bioconductor.org/packages/<pkg> into the
-     `bioc` remote, and fetch `origin` (the rescue repo).
-  2. Collect the commits on origin/<default> that are not on bioc/devel,
-     skipping merge commits and commits whose patch is already on bioc/devel
-     (e.g. the same fix merged twice through different PRs).
-  3. Rebuild <default> as bioc/devel plus those commits, replayed oldest first
-     with `git cherry-pick`. The result is linear: no merge commits above
-     bioc/devel.
+  1. Fetch `devel` from the `upstream` remote, and fetch `origin` (the
+     rescue repo). `upstream` fetches anonymously over HTTPS
+     (https://git.bioconductor.org/packages/<pkg>) and pushes over SSH
+     (git@git.bioconductor.org:packages/<pkg>), which needs a key registered
+     with BiocCredentials; this script only fetches from it.
+  2. Collect the commits on origin/<default> that are not on upstream/devel,
+     skipping merge commits and commits whose patch is already on
+     upstream/devel (e.g. the same fix merged twice through different PRs).
+  3. Rebuild <default> as upstream/devel plus those commits, replayed oldest
+     first with `git cherry-pick`. The result is linear: no merge commits
+     above upstream/devel.
   4. Without --push, leave the result on a local `bioc-sync` branch for
      review and restore the checkout. With --push: save the old tip as `pre-sync/<YYYYMMDD>` on origin,
      force-push <default> with --force-with-lease, and turn off merge commits
@@ -51,7 +54,9 @@ BUILD_DATABASES = {
 PACKAGES_CSV = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "packages.csv")
 WORKSPACE_ROOT = "/Users/Levi/git/bioc-package-rescue"
 
-BIOC_REMOTE = "bioc"
+BIOC_REMOTE = "upstream"
+BIOC_URL = "https://git.bioconductor.org/packages/{pkg}"
+BIOC_PUSH_URL = "git@git.bioconductor.org:packages/{pkg}"
 BIOC_BRANCH = "devel"
 ORG = "bioc-package-rescue"
 
@@ -112,14 +117,24 @@ def default_branch(local):
 
 
 def ensure_bioc_remote(local, pkg):
-    url = f"https://git.bioconductor.org/packages/{pkg}"
+    """Add the Bioconductor remote (fetch over HTTPS, push over SSH), or check
+    that the existing one fetches from git.bioconductor.org. Returns False if
+    it fetches from elsewhere (e.g. a GitHub upstream), since syncing onto
+    that would rewrite history on the wrong base."""
+    url = BIOC_URL.format(pkg=pkg)
+    push_url = BIOC_PUSH_URL.format(pkg=pkg)
     remotes = git_out(local, "remote").splitlines()
     if BIOC_REMOTE not in remotes:
         git_out(local, "remote", "add", BIOC_REMOTE, url)
     else:
         current = git_out(local, "remote", "get-url", BIOC_REMOTE)
         if current.rstrip("/").removesuffix(".git") != url:
-            print(f"  Note: remote '{BIOC_REMOTE}' points to {current}, not {url}.")
+            print(f"  [Error] remote '{BIOC_REMOTE}' points to {current}, not {url}. "
+                  f"Fix it with: git remote set-url {BIOC_REMOTE} {url}")
+            return False
+    if git_out(local, "remote", "get-url", "--push", BIOC_REMOTE) != push_url:
+        git_out(local, "remote", "set-url", "--push", BIOC_REMOTE, push_url)
+    return True
 
 
 def is_ancestor(local, a, b):
@@ -177,7 +192,8 @@ def sync_package(pkg, workspace, push):
         print(f"  [Skip] {local} has uncommitted changes.")
         return "skipped"
 
-    ensure_bioc_remote(local, pkg)
+    if not ensure_bioc_remote(local, pkg):
+        return "failed"
     r = git(local, "fetch", "-q", BIOC_REMOTE, BIOC_BRANCH)
     if r.returncode != 0:
         print(f"  [Error] fetch {BIOC_REMOTE} {BIOC_BRANCH}: {r.stderr.strip()}")

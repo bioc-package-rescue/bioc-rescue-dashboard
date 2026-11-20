@@ -7,9 +7,18 @@ original upstream repository (parent), ensuring that rescue-specific files
 (like .github/workflows/check-bioc.yml) are excluded from the PR diff.
 
 Rescue repos are synced with git.bioconductor.org devel before any fixes
-(see sync_repos.py), so the rescue changes are the diff between bioc/devel
-and the fix branch. Only that diff is applied to the upstream default branch;
-commits that came from git.bioconductor.org are not proposed as fixes.
+(see sync_repos.py), so the rescue changes are the diff between
+upstream/devel and the fix branch. Only that diff is applied to the GitHub
+author's default branch; commits that came from git.bioconductor.org are not
+proposed as fixes.
+
+Remotes in the local checkout:
+  origin    the rescue fork (bioc-package-rescue/<pkg>)
+  upstream  git.bioconductor.org: fetches over HTTPS
+            (https://git.bioconductor.org/packages/<pkg>), pushes over SSH
+            (git@git.bioconductor.org:packages/<pkg>)
+  author    the package author's GitHub repository, which the rescue repo was
+            forked from (its GitHub "parent")
 
 Usage:
   python scripts/submit_upstream.py <package_name> <fix_branch_name>
@@ -72,28 +81,38 @@ def main():
         
     print(f"Upstream default branch: {upstream_default_branch}")
     
-    # Ensure upstream remote is added locally
+    # Ensure the author's GitHub repo (the fork's parent) is added locally
     remotes = run(["git", "remote"], cwd=local_path, capture=True).splitlines()
-    if "upstream" not in remotes:
-        upstream_url = f"https://github.com/{parent_slug}.git"
-        print(f"Adding remote 'upstream' -> {upstream_url}")
-        run(["git", "remote", "add", "upstream", upstream_url], cwd=local_path)
+    if "author" not in remotes:
+        author_url = f"https://github.com/{parent_slug}.git"
+        print(f"Adding remote 'author' -> {author_url}")
+        run(["git", "remote", "add", "author", author_url], cwd=local_path)
     else:
-        print("Remote 'upstream' is already configured.")
+        print("Remote 'author' is already configured.")
         
-    print("Fetching upstream...")
-    run(["git", "fetch", "upstream"], cwd=local_path)
+    print("Fetching author...")
+    run(["git", "fetch", "author"], cwd=local_path)
 
     # The rescue changes are measured from the Bioconductor devel branch that
-    # the rescue repo was synced to, not from the GitHub upstream, which may
+    # the rescue repo was synced to, not from the author's GitHub repo, which may
     # lag behind or differ from git.bioconductor.org.
-    if "bioc" not in remotes:
-        bioc_url = f"https://git.bioconductor.org/packages/{pkg}"
-        print(f"Adding remote 'bioc' -> {bioc_url}")
-        run(["git", "remote", "add", "bioc", bioc_url], cwd=local_path)
-    print("Fetching bioc devel...")
-    run(["git", "fetch", "bioc", "devel"], cwd=local_path)
-    base_ref = "bioc/devel"
+    bioc_url = f"https://git.bioconductor.org/packages/{pkg}"
+    bioc_push_url = f"git@git.bioconductor.org:packages/{pkg}"
+    if "upstream" not in remotes:
+        print(f"Adding remote 'upstream' -> {bioc_url} (push: {bioc_push_url})")
+        run(["git", "remote", "add", "upstream", bioc_url], cwd=local_path)
+    else:
+        current = run(["git", "remote", "get-url", "upstream"], cwd=local_path, capture=True)
+        if current.rstrip("/").removesuffix(".git") != bioc_url:
+            print(f"Error: remote 'upstream' points to {current}, not {bioc_url}. "
+                  f"Fix it with: git remote set-url upstream {bioc_url}")
+            sys.exit(1)
+    current_push = run(["git", "remote", "get-url", "--push", "upstream"], cwd=local_path, capture=True)
+    if current_push != bioc_push_url:
+        run(["git", "remote", "set-url", "--push", "upstream", bioc_push_url], cwd=local_path)
+    print("Fetching upstream devel...")
+    run(["git", "fetch", "upstream", "devel"], cwd=local_path)
+    base_ref = "upstream/devel"
     try:
         run(["git", "merge-base", "--is-ancestor", base_ref, fix_branch], cwd=local_path)
     except subprocess.CalledProcessError:
@@ -101,15 +120,15 @@ def main():
               f"Run scripts/sync_repos.py {pkg} and rebase the fix branch first.")
         sys.exit(1)
     
-    # Create a temporary submission branch off upstream default branch
+    # Create a temporary submission branch off the author's default branch
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     submit_branch = f"submit-upstream-{timestamp}"
-    print(f"Creating clean local branch '{submit_branch}' off 'upstream/{upstream_default_branch}'...")
-    run(["git", "checkout", "-b", submit_branch, f"upstream/{upstream_default_branch}"], cwd=local_path)
+    print(f"Creating clean local branch '{submit_branch}' off 'author/{upstream_default_branch}'...")
+    run(["git", "checkout", "-b", submit_branch, f"author/{upstream_default_branch}"], cwd=local_path)
     
     success = False
     try:
-        # Find files modified in fix_branch compared to upstream/defaultBranch
+        # Find files modified in fix_branch compared to upstream/devel
         print(f"Identifying package files changed between {base_ref} and '{fix_branch}'...")
         diff_files = run(["git", "diff", "--name-only", f"{base_ref}..{fix_branch}"], cwd=local_path, capture=True).splitlines()
         
@@ -134,12 +153,12 @@ def main():
         applied = subprocess.run(["git", "apply", "--3way", "--index"],
                                  cwd=local_path, input=patch)
         if applied.returncode != 0:
-            print(f"Error: the rescue changes do not apply cleanly to upstream/{upstream_default_branch}. "
+            print(f"Error: the rescue changes do not apply cleanly to author/{upstream_default_branch}. "
                   "Resolve the conflicts by hand.")
             run(["git", "reset", "-q", "--hard"], cwd=local_path)
             return
         if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=local_path).returncode == 0:
-            print(f"upstream/{upstream_default_branch} already has these changes; nothing to submit.")
+            print(f"author/{upstream_default_branch} already has these changes; nothing to submit.")
             success = True
             return
             
